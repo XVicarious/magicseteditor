@@ -245,9 +245,9 @@ void SetWindow::onAction(const Action& action, bool undone) {
 	
 	
 void SetWindow::onCardSelect(CardSelectEvent& ev) {
-	FOR_EACH(p, panels) {
-		p->selectCard(ev.card);
-	}
+	CardP card = ev.card;
+	FOR_EACH(p, panels)
+		p->selectCard(card);
 }
 
 void SetWindow::fixMinWindowSize() {

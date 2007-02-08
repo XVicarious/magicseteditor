@@ -38,6 +38,7 @@ String Game::typeName() const { return _("game"); }
 IMPLEMENT_REFLECTION(Game) {
 	REFLECT_BASE(Packaged);
 	REFLECT(init_script);
+	REFLECT(style_fields);
 	REFLECT(set_fields);
 	REFLECT(card_fields);
 	REFLECT(statistics_dimensions);

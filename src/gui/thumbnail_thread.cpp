@@ -9,6 +9,7 @@
 #include <gui/thumbnail_thread.hpp>
 #include <util/platform.hpp>
 #include <wx/thread.h>
+#include <util/error.hpp>
 
 typedef pair<ThumbnailRequestP,Image> pair_ThumbnailRequestP_Image;
 DECLARE_TYPEOF_COLLECTION(pair_ThumbnailRequestP_Image);

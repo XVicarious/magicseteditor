@@ -82,9 +82,9 @@ IMPLEMENT_REFLECTION(TextStyle) {
 	REFLECT(padding_right_min);
 	REFLECT(padding_top_min);
 	REFLECT(padding_bottom_min);
-	REFLECT(line_height_soft);
-	REFLECT(line_height_hard);
-	REFLECT(line_height_line);
+	REFLECT_DEFAULT(line_height_soft, 1.0);
+	REFLECT_DEFAULT(line_height_hard, 1.0);
+	REFLECT_DEFAULT(line_height_line, 1.0);
 	REFLECT_N("mask", mask_filename);
 }
 

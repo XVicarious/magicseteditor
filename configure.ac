@@ -25,13 +25,13 @@ AM_OPTIONS_WXCONFIG
 AM_PATH_WXCONFIG(2.6.0,wxWin=1)
 if test "$wxWin" != 1; then
     AC_MSG_ERROR([
-       wxWindows must be installed on your system
+       wxWidgets must be installed on your system
        but wx-config script couldn't be found.
 
        Please check that wx-config is in path, the directory
-       where wxWindows libraries are installed (returned by
+       where wxWidgets libraries are installed (returned by
        'wx-config --libs' command) is in LD_LIBRARY_PATH or
-        equivalent variable and wxWindows version is 2.6.0 or above.
+        equivalent variable and wxWidgets version is 2.6.0 or above.
     ])
 fi
 
@@ -45,7 +45,7 @@ AC_STRUCT_TM
 AC_HEADER_STDC
 AC_FUNC_MALLOC
 AC_FUNC_SELECT_ARGTYPES
-AC_CHECK_FUNCS([floor memset pow select sqrt])
+AC_CHECK_FUNCS([floor memset pow select sqrt abs fabs])
 
 AC_OUTPUT([
 	Makefile

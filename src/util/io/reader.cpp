@@ -192,6 +192,7 @@ template <> void Reader::handle(double& d) {
 template <> void Reader::handle(bool& b) {
 	b = (getValue()==_("true") || getValue()==_("1") || getValue()==_("yes"));
 }
+
 // ----------------------------------------------------------------------------- : Handling less basic util types
 
 template <> void Reader::handle(Vector2D& vec) {

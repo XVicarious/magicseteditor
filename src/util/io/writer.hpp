@@ -45,6 +45,17 @@ class Writer {
 		handle(object);
 		exitBlock();
 	}
+
+	/// Handle an object: write it unless it's the default value
+	template <typename T>
+	void handle(const Char* name, const T& object, const T def) {
+		if (object != def) {
+			enterBlock(name);
+			handle(object);
+			exitBlock();
+		}
+	}
+
 	/// Write a vector to the output stream
 	template <typename T>
 	void handle(const Char* name, const vector<T>& vector);
@@ -65,6 +76,8 @@ class Writer {
 	template <typename T> void handle(const Defaultable<T>&);
 	/// Write an object of type Scriptable<T> to the output stream
 	template <typename T> void handle(const Scriptable<T>&);
+	/// Write a Scriptable<T> to the output, unless it has a specified value
+	template <typename T> void handle(const Char*, Scriptable<T>&, const T def);
 	// special behaviour
 	void handle(const GameP&);
 	void handle(const StyleSheetP&);

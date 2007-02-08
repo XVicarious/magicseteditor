@@ -159,7 +159,7 @@ String cannocial_name_form(const String& str) {
 
 String singular_form(const String& str) {
 	assert(str.size() > 1);
-	assert(str.GetChar(str.size() - 1) == _('s')); // ends in 's'
+	assert(str.GetChar(str.size() - 1) != _('s')) // shouldn't end in 's'
 	if (str.size() > 3 && is_substr(str, str.size()-3, _("ies"))) {
 		return str.substr(0, str.size() - 3) + _("y");
 	}

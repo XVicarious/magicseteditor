@@ -16,11 +16,13 @@
 /// Types of dependencies
 enum DependencyType
 {	DEP_CARD_FIELD			///< dependency of a script in a "card" field
-,	DEP_CARDS_FIELD			///< dependency of a script in a "card"  field for all cards
-,	DEP_SET_FIELD			///< dependency of a script in a "set"   field
-,	DEP_STYLE				///< dependency of a script in a "style" property, data gives the stylesheet
+,	DEP_CARDS_FIELD			///< dependency of a script in a "card" field for all cards
+,	DEP_SET_FIELD			///< dependency of a script in a "set"  field
+,	DEP_STYLE_FIELD			///< dependency of a script in a "stylesheet.style_info" field
+,	DEP_STYLE			///< dependency of a script in a "style" property, data gives the stylesheet
 ,	DEP_CARD_COPY_DEP		///< copy the dependencies from a card field
 ,	DEP_SET_COPY_DEP		///< copy the dependencies from a set  field
+,	DEP_STYLE_COPY_DEP
 };
 
 /// A 'pointer' to some script that depends on another script
@@ -30,7 +32,7 @@ class Dependency {
 		: type(type), index(index), data(data)
 	{}
 	
-	DependencyType type   : 5;	///< Type of the dependent script
+	DependencyType type   : 6;	///< Type of the dependent script
 	size_t         index  : 27;	///< index into an IndexMap
 	void*          data;		///< Extra pointer data
 	

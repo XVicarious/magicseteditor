@@ -10,6 +10,9 @@ short name: Old style
 full name: Before 8th edition
 icon: card-sample.png
 
+style info:
+	support alternate: no
+
 ############################################################## Extra scripts
 ## COPY/PASTE from magic-new.mse-style/style
 

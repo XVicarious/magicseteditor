@@ -4,6 +4,9 @@ short name: Flip Cards
 full name: Modern flip cards
 icon: card-sample.png
 
+style info:
+	support alternate: no
+
 # Author: Wolfwood
 # Non-creature extension: Guinea Pig and Neko Asakami
 # Lots of copy/paste from magic-new.mse-style
@@ -32,7 +35,6 @@ init script:
 		else
 			rgb(0,0,0)
 	}
-
 
 ############################################################## Set info fields
 info style:

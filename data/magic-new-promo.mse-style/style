@@ -4,6 +4,9 @@ short name: Promotional
 full name: Large image
 icon: card-sample.png
 
+style info:
+	support alternate: no
+
 ############################################################## Extra scripts
 
 init script:

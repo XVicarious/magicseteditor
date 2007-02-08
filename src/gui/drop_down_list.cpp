@@ -92,6 +92,7 @@ void DropDownList::show(bool in_place, wxPoint pos) {
 		wxClientDC dc(this);
 		dc.SetFont(*wxNORMAL_FONT);
 		for (size_t i = 0 ; i < count ; ++i) {
+			if(!isVisible(i)) continue;
 			int text_width;
 			dc.GetTextExtent(capitalize(itemText(i)), &text_width, 0);
 			item_size.width = max(item_size.width, text_width + icon_size.width + 14); // 14 = room for popup arrow + padding
@@ -100,10 +101,12 @@ void DropDownList::show(bool in_place, wxPoint pos) {
 	// height
 	int line_count = 0;
 	for (size_t i = 0 ; i < count ; ++i) if (lineBelow(i)) line_count += 1;
+	int visible_count = 0;
+	for (size_t i = 0 ; i < count ; ++i) if (isVisible(i)) visible_count += 1;
 	// size
 	RealSize size(
 		item_size.width + marginW * 2,
-		item_size.height * count + marginH * 2 + line_count
+		item_size.height * visible_count + marginH * 2 + line_count
 	);
 	int parent_height = 0;
 	if (!in_place && viewer) {
@@ -199,13 +202,14 @@ bool DropDownList::showSubMenu(size_t item, int y) {
 int DropDownList::itemPosition(size_t item) const {
 	int y = marginH;
 	size_t count = itemCount();
-	for (size_t i = 0 ; i < count ; ++i) {
-		if (i == item) return y;
+	size_t i;
+	for (i = 0 ; i < count ; ++i) {
+		if (i == item) break;
 		y += (int)item_size.height + lineBelow(item);
 	}
-	// not found
-	assert(false);
-	return 0;
+	assert(i != count);
+	if (!isVisible(i)) return 0;
+	return y;
 }
 
 void DropDownList::redrawArrowOnParent() {
@@ -236,8 +240,9 @@ void DropDownList::draw(DC& dc) {
 	int y = marginH;
 	size_t count = itemCount();
 	for (size_t i = 0 ; i < count ; ++i) {
-		drawItem(dc, y, i);
-		y += (int)item_size.height + lineBelow(i);
+		if (!isVisible(i)) continue;
+			drawItem(dc, y, i);
+			y += (int)item_size.height + lineBelow(i);
 	}
 }
 
@@ -293,6 +298,7 @@ void DropDownList::onMotion(wxMouseEvent& ev) {
 	int startY = marginH;
 	size_t count = itemCount();
 	for (size_t i = 0 ; i < count ; ++i) {
+		if (!isVisible(i)) continue;
 		int endY = startY + (int)item_size.height;
 		if (ev.GetY() >= startY && ev.GetY() < endY) {
 			selected_item = i;

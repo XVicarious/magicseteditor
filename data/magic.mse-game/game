@@ -1,4 +1,4 @@
-﻿mse version: 0.2.7
+mse version: 0.2.7
 short name: Magic
 full name: Magic the Gathering
 icon: card-back.png
@@ -54,7 +54,7 @@ init script:
 			else if count == 2 then  "multicolor 2 color " + color_name(colors[0]) + " / " + color_name(colors[1])
 			else if set.set_info.use_gradient_multicolor != "yes" then "multicolor" # stop here
 			else if count == 3 then  "multicolor 3 color " + color_name(colors[0]) + " / " + color_name(colors[1]) + " / " + color_name(colors[2])
-			else if count == 3 then  "multicolor 4 color " + to_lower(colors[0]) + "/" + to_lower(colors[1]) + "/" + to_lower(colors[2]) + to_lower(colors[3])
+			else if count == 4 then  "multicolor 4 color " + to_lower(colors[0]) + "/" + to_lower(colors[1]) + "/" + to_lower(colors[2]) + "/" + to_lower(colors[3])
 			else if count == 5 then  "multicolor 5 color w/u/b/r/g"
 			else                     "multicolor"
 		else
@@ -221,6 +221,12 @@ init script:
 #		card.pt + "\n"
 #		"[i]" + card.flavor_text + "[/i]"
 
+############################################################## Style fields
+
+style field:
+	type: boolean
+	name: support alternate
+
 ############################################################## Set fields
 
 set field:
@@ -271,6 +277,10 @@ set field:
 	type: boolean
 	name: mark errors
 	description: Marks errors on cards, for example wording and spelling errors, non unique card names, etc.
+set field:
+	type: boolean
+	name: extended frames
+	description: Display increased options for choosing frames (turning this option off will not remove existing extended frames)
 set field:
 	type: choice
 	name: use gradient multicolor
@@ -483,13 +493,14 @@ card field:
 	name: card number
 	save value: false
 	script:
-		position(
-			of: card
-			in: set
-			order_by: { sort_index() + card.name }
-			) + 1
-		+ "/" +
-		number_of_items(in: set)
+		stylesheet.style_info.support_alternate
+		#position(
+		#	of: cards
+		#	in: set
+		#	order_by: { sort_index() + card.name }
+		#	) + 1
+		#+ "/" +
+		#number_of_items(in: set)
 	card list visible: true
 	card list column: 10
 	card list width: 50

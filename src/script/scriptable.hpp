@@ -158,5 +158,23 @@ void GetDefaultMember::handle(const Scriptable<T>& s) {
 	handle(s.value);
 }
 
+template <typename T>
+void Reader::handle(const Char* name, Scriptable<T>& object, const T def){
+	if (enterBlock(name)) {
+		handle_greedy(object);
+		exitBlock();
+	}
+	else object = def;
+}
+
+template <typename T>
+void Writer::handle(const Char* name, Scriptable<T>& object, const T def){
+	if (object.value != def) {
+		enterBlock(name);
+		handle(object);
+		exitBlock();
+	}
+}
+
 // ----------------------------------------------------------------------------- : EOF
 #endif

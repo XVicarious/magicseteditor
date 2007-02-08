@@ -39,6 +39,8 @@ class GetDefaultMember {
 	/// Handle an object: we don't match things with a name
 	template <typename T>
 	void handle(const Char* name, const T& object) {}
+	template <typename T>
+	void handle(const Char* name, const T& object, T def) {}
 
 	/// Handle an object: investigate children, or store it if we know how
 	                                  void handle(const Char *);
@@ -47,6 +49,8 @@ class GetDefaultMember {
 	/// Handle a Defaultable: investigate children
 	template <typename T>             void handle(const Defaultable<T>&);
 	template <typename T>             void handle(const Scriptable<T>& );
+	/// Don't care about names.
+	template <typename T> void handle(const Char*, const Scriptable<T>&, const T def) {}
 	template <typename T>             void handle(const vector<T>&     c) { value = toScript(&c); }
 	template <typename K, typename V> void handle(const map<K,V>&      c) { value = toScript(&c); }
 	template <typename K, typename V> void handle(const IndexMap<K,V>& c) { value = toScript(&c); }
@@ -85,6 +89,13 @@ class GetMember : private GetDefaultMember {
 			gdm.handle(object);
 		}
 	}
+	template <typename T>
+	void handle(const Char* name, const T& object, const T def) {
+		if (!gdm.result() && cannocial_name_compare(target_name, name)) {
+			gdm.handle(object);
+		}
+	}
+
 	/// Handle an object: investigate children
 	template <typename T> void handle(const T&);
 	/// Handle an index map: invistigate keys

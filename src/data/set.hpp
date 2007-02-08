@@ -45,7 +45,7 @@ class Set : public Packaged {
 	Set(const StyleSheetP& stylesheet);
 	~Set();
   
-	GameP game;					///< The game this set uses
+	GameP game;			///< The game this set uses
 	StyleSheetP stylesheet;		///< The default stylesheet
 	/// The values on the fields of the set
 	/** The indices should correspond to the set_fields in the Game */

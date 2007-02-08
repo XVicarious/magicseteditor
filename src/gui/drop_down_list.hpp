@@ -61,6 +61,9 @@ class DropDownList : public wxPopupWindow {
 	virtual bool highlightItem(size_t item)    const { return false; }
 	// An extra submenu that pops up from an item, or null if there is no popup menu
 	virtual DropDownList* submenu(size_t item) const { return nullptr; }
+
+	/// Should an item be drawn?
+	virtual bool isVisible(size_t item)        const { return true; }
 	
 	// --------------------------------------------------- : Layout
 	

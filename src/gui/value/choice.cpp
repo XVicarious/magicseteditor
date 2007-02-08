@@ -94,6 +94,11 @@ DropDownChoiceList::DropDownChoiceList(Window* parent, bool is_submenu, ChoiceVa
 	item_size.height = max(16., item_size.height);
 }
 
+bool DropDownChoiceList::isVisible(size_t item) const {
+	if (isDefault(item)) return true;
+	else return (group->choices[item-hasDefault()]->visible()) ;
+	}
+
 size_t DropDownChoiceList::itemCount() const {
 	return group->choices.size() + hasDefault();
 }
@@ -120,7 +125,7 @@ bool DropDownChoiceList::lineBelow(size_t item) const {
 	return isDefault(item);
 }
 DropDownList* DropDownChoiceList::submenu(size_t item) const {
-	if (isDefault(item)) return nullptr;
+	if (isDefault(item) || !isVisible(item)) return nullptr;
 	item -= hasDefault();
 	if (item >= submenus.size()) submenus.resize(item + 1);
 	if (submenus[item]) return submenus[item].get();

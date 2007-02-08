@@ -547,6 +547,7 @@ ScriptValueP ScriptBuildin_combined_editor::dependencies(Context& ctx, const Dep
 	FieldP target_field;
 	if      (dep.type == DEP_CARD_FIELD) target_field = game->card_fields[dep.index];
 	else if (dep.type == DEP_SET_FIELD)  target_field = game->set_fields[dep.index];
+	else if (dep.type == DEP_STYLE_FIELD) target_field = game->style_fields[dep.index];
 	else                                 throw InternalError(_("Finding dependencies of combined error for non card/set field"));
 	// Add dependencies, from target_field on field#
 	// For card fields
@@ -564,6 +565,17 @@ ScriptValueP ScriptBuildin_combined_editor::dependencies(Context& ctx, const Dep
 	j = 0;
 	FOR_EACH(f, game->set_fields) {
 		Dependency dep(DEP_SET_COPY_DEP, j++);
+		FOR_EACH(fn, fields) {
+			if (f == fn) {
+				target_field->dependent_scripts.add(dep);
+				break;
+			}
+		}
+	}
+	// For style fields
+	j = 0;
+	FOR_EACH(f, game->style_fields) {
+		Dependency dep(DEP_STYLE_COPY_DEP, j++);
 		FOR_EACH(fn, fields) {
 			if (f == fn) {
 				target_field->dependent_scripts.add(dep);

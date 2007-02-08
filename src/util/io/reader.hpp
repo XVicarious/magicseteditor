@@ -82,6 +82,17 @@ class Reader {
 			exitBlock();
 		}
 	}
+
+	/// Handle an object, and possibly give it a default value
+	template <typename T>
+	void handle(const Char* name, T& object, const T def) {
+		if (enterBlock(name)) {
+			handle_greedy(object);
+			exitBlock();
+		}
+		else object = def;
+	}
+	
 	/// Reads a vector from the input stream
 	template <typename T>
 	void handle(const Char* name, vector<T>& vector);
@@ -98,6 +109,8 @@ class Reader {
 	template <typename T> void handle(Defaultable<T>&);
 	/// Reads a Scriptable from the input stream
 	template <typename T> void handle(Scriptable<T>&);
+	/// Write a Scriptable<T> to the output, unless it has a specified value
+	template <typename T> void handle(const Char*, Scriptable<T>&, const T def);
 	// special behaviour
 	void handle(GameP&);
 	void handle(StyleSheetP&);

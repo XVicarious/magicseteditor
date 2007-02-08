@@ -83,7 +83,7 @@ class DisplayChangeAction : public Action {
 	virtual void   perform(bool to_undo);
 };
 
-/// Changing the style of a a card
+/// Changing the style of a a card.
 class ChangeCardStyleAction : public DisplayChangeAction {
   public:
 	ChangeCardStyleAction(const CardP& card, const StyleSheetP& stylesheet)
@@ -93,7 +93,7 @@ class ChangeCardStyleAction : public DisplayChangeAction {
 	virtual void   perform(bool to_undo);
 	
   //private:
-	CardP       card;			///< The affected card
+	CardP       card;		///< The affected card
 	StyleSheetP stylesheet;		///< Its new stylesheet
 };
 
@@ -107,8 +107,8 @@ class ChangeSetStyleAction : public DisplayChangeAction {
 	virtual void   perform(bool to_undo);
 	
   private:
-	Set&        set;			///< The affected set
-	CardP       card;			///< The card whos stylesheet is copied to the set
+	Set&        set;		///< The affected set
+	CardP       card;		///< The card whos stylesheet is copied to the set
 	StyleSheetP stylesheet;		///< The old stylesheet of the set
 };
 

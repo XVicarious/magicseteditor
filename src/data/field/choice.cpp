@@ -30,6 +30,7 @@ void ChoiceField::initDependencies(Context& ctx, const Dependency& dep) const {
 	Field        ::initDependencies(ctx, dep);
 	script        .initDependencies(ctx, dep);
 	default_script.initDependencies(ctx, dep);
+	choices        ->initDependencies(ctx, dep);
 }
 
 IMPLEMENT_REFLECTION(ChoiceField) {
@@ -135,15 +136,23 @@ String ChoiceField::Choice::choiceNameNice(int id) const {
 	return _("");
 }
 
+void ChoiceField::Choice::initDependencies(Context& ctx, const Dependency& dep) {
+	visible.initDependencies(ctx, dep);
+	FOR_EACH(c, choices)
+		c->initDependencies(ctx, dep);
+}
 
 IMPLEMENT_REFLECTION_NO_GET_MEMBER(ChoiceField::Choice) {
 	if (isGroup() || (tag.reading() && tag.isComplex())) {
 		// complex values are groups
 		REFLECT(name);
+		REFLECT_DEFAULT(visible,true);
 		REFLECT_N("group_choice", default_name);
 		REFLECT(choices);
+		if (!isGroup()) visible = true;
 	} else {
 		REFLECT_NAMELESS(name);
+		visible = true;
 	}
 }
 

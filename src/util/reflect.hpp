@@ -92,14 +92,20 @@
 			void Cls::reflect_impl(Tag& tag)
 
 /// Reflect a variable
-#define REFLECT(var)          tag.handle(_(#var), var)
+#define REFLECT(var)                tag.handle(_(#var), var)
 /// Reflect a variable under the given name
-#define REFLECT_N(name, var)  tag.handle(_(name), var)
+#define REFLECT_N(name, var)        tag.handle(_(name), var)
 /// Reflect a variable without a name, should be used only once per class
-#define REFLECT_NAMELESS(var) tag.handle(var)
+#define REFLECT_NAMELESS(var)       tag.handle(var)
 
 /// Declare that the variables of a base class should also be reflected
-#define REFLECT_BASE(Base)    Base::reflect_impl(tag)
+#define REFLECT_BASE(Base)          Base::reflect_impl(tag)
+
+/// Reflect a variable with a default value
+#define REFLECT_DEFAULT(var, def)   tag.handle(_(#var), var, def)
+
+/// Reflect a variable with a default value and a given name
+#define REFLECT_DEFAULT_N(var, def) tag.handle(_(name), var, def)
 
 
 // ----------------------------------------------------------------------------- : Reflecting enums

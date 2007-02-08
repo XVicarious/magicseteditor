@@ -18,6 +18,9 @@ DECLARE_POINTER_TYPE(Game);
 DECLARE_POINTER_TYPE(StyleSheet);
 DECLARE_POINTER_TYPE(Field);
 DECLARE_POINTER_TYPE(Style);
+DECLARE_POINTER_TYPE(Value);
+
+DECLARE_TYPEOF_COLLECTION(FieldP);
 
 // ----------------------------------------------------------------------------- : StyleSheet
 
@@ -43,6 +46,8 @@ class StyleSheet : public Packaged {
 	/// The styling for the extra set fields
 	/** The indices should correspond to the styling_fields */
 	IndexMap<FieldP, StyleP> styling_style;
+	
+	IndexMap<FieldP, ValueP> style_info; /// Info about the style
 	
 	bool dependencies_initialized;	///< are the script dependencies comming from this stylesheet all initialized?
 	

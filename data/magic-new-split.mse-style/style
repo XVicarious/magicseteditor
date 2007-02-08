@@ -4,6 +4,9 @@ short name: Split Cards
 full name: Modern split cards
 icon: card-sample.png
 
+style info:
+	support alternate: no
+
 # Author: Wolfwood
 # Lots of copy/paste from magic-new.mse-style
 

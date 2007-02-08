@@ -40,8 +40,8 @@ Alignment from_string(const String& s) {
 	if (s.find(_("center"))         !=String::npos) al = ALIGN_CENTER			| (al & ALIGN_VERTICAL);
 	if (s.find(_("right"))          !=String::npos) al = ALIGN_RIGHT			| (al & ALIGN_VERTICAL);
 	if (s.find(_("justify"))        !=String::npos) al = ALIGN_JUSTIFY			| (al & ALIGN_VERTICAL);
-	if (s.find(_("justify-words"))  !=String::npos) al = ALIGN_JUSTIFY_WORDS	| (al & ALIGN_VERTICAL);
-	if (s.find(_("shrink-overflow"))!=String::npos) al = ALIGN_JUSTIFY_OVERFLOW	| (al & ~ALIGN_JUSTIFY_OVERFLOW);
+	if (s.find(_("justify-words"))  !=String::npos) al = ALIGN_JUSTIFY_WORDS		| (al & ALIGN_VERTICAL);
+	if (s.find(_("shrink-overflow"))!=String::npos) al = ALIGN_JUSTIFY_OVERFLOW		| (al & ~ALIGN_JUSTIFY_OVERFLOW);
 	if (s.find(_("top"))            !=String::npos) al = ALIGN_TOP				| (al & ALIGN_HORIZONTAL);
 	if (s.find(_("middle"))         !=String::npos) al = ALIGN_MIDDLE			| (al & ALIGN_HORIZONTAL);
 	if (s.find(_("bottom"))         !=String::npos) al = ALIGN_BOTTOM			| (al & ALIGN_HORIZONTAL);
@@ -58,12 +58,12 @@ String to_string(Alignment align) {
 	if (align & ALIGN_BOTTOM)			ret += _(" bottom");
 	// horizontal
 	if (align & ALIGN_LEFT)				ret += _(" left");
-	if (align & ALIGN_LEFT)				ret += _(" center");
-	if (align & ALIGN_LEFT)				ret += _(" right");
-	if (align & ALIGN_LEFT)				ret += _(" justify");
-	if (align & ALIGN_LEFT)				ret += _(" justify-words");
+	if (align & ALIGN_CENTER)			ret += _(" center");
+	if (align & ALIGN_RIGHT)			ret += _(" right");
+	if (align & ALIGN_JUSTIFY)			ret += _(" justify");
+	if (align & ALIGN_JUSTIFY_WORDS)		ret += _(" justify-words");
 	// modifier
-	if (align & ALIGN_JUSTIFY_OVERFLOW) ret += _(" shrink-overflow");
+	if (align & ALIGN_JUSTIFY_OVERFLOW)		ret += _(" shrink-overflow");
 	if (align & ALIGN_STRETCH)			ret += _(" stretch");
 	return ret.substr(1);
 }

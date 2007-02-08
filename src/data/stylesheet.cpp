@@ -12,6 +12,7 @@
 #include <util/io/package_manager.hpp>
 
 DECLARE_TYPEOF_COLLECTION(StyleSheet*);
+DECLARE_TYPEOF_COLLECTION(FieldP);
 
 // ----------------------------------------------------------------------------- : StyleSheet
 
@@ -71,15 +72,26 @@ IMPLEMENT_REFLECTION(StyleSheet) {
 		if (tag.reading()) {
 			card_style    .init(game->card_fields);
 			set_info_style.init(game->set_fields);
+			style_info    .init(game->style_fields);
 		}
 		REFLECT(card_style);
 		REFLECT(set_info_style);
+		REFLECT(style_info);
 	}
 	REFLECT(styling_fields);
 	if (tag.reading()) styling_style.init(styling_fields);
 	REFLECT(styling_style);
 }
 
+void mark_dependency_member(StyleSheet* value, const String& name, const Dependency& dep){
+	// Is it part of the style info?
+	if (name == _("style_info")) {
+		IndexMap<FieldP,ValueP>::const_iterator it = value->style_info.find(name);
+		if (it != value->style_info.end()) {
+			(*it)->fieldP->dependent_scripts.add(dep);
+		}
+	}
+}
 
 // special behaviour of reading/writing StyleSheetPs: only read/write the name
 

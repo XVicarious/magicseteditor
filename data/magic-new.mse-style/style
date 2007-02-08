@@ -4,6 +4,9 @@ short name: Modern style
 full name: After 8th edition
 icon: card-sample.png
 
+style info:
+	support alternate: yes
+
 ############################################################## Extra scripts
 
 init script:
@@ -21,8 +24,11 @@ init script:
 			else                                            "a"
 		) else	input
 	}
-	card_template := { artifact_template() + "card.jpg" }
-	pt_template   := { artifact_template() + "pt.jpg" }
+	card_template      := { artifact_template() + "card.jpg" }
+	pt_template        := { artifact_template() + "pt.jpg" }
+	alternate_template := { if input[0] != "a" and input[0] != "l" and input[0] != "m"
+				then "a" + card_template()
+				else card_template()}
 	
 	# Use the normal tap symbol
 	mana_t := {

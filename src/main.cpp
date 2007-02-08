@@ -54,7 +54,7 @@ bool MSE::OnInit() {
 		settings.read();
 		the_locale = Locale::byName(settings.locale);
 		check_updates();
-		
+
 		// interpret command line
 		if (argc > 1) {
 			try {

@@ -10,6 +10,9 @@ short name: Tokens
 full name: Old style
 icon: card-sample.png
 
+style info:
+	support alternate: no
+
 ############################################################## Extra scripts
 ## COPY/PASTE from magic-old.mse-style/style
 

@@ -9,7 +9,11 @@
 #include <data/action/set.hpp>
 #include <data/set.hpp>
 #include <data/card.hpp>
+#include <data/game.hpp>
 #include <util/error.hpp>
+
+DECLARE_TYPEOF_COLLECTION(CardP)
+DECLARE_TYPEOF_COLLECTION(FieldP)
 
 // ----------------------------------------------------------------------------- : Add card
 

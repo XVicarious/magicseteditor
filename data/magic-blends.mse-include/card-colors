@@ -1,15 +1,41 @@
 # Quite a lot of card colors
 # Included by a game file
 
+choice: colorless
 choice: white
 choice: blue
 choice: black
 choice: red
 choice: green
-choice: colorless
+choice
+	name:    alternate monocolor
+	visible: { stylesheet.style_info.support_alternate }
+	choice:  white
+	choice:  blue
+	choice:  black
+	choice:  red
+	choice:  green
 choice:
 	name:   multicolor
 	group choice: normal
+	choice:
+		name: 1 color
+		visible: { set.extended_frames }
+		choice: white
+		choice: blue
+		choice: black
+		choice: red
+		choice: green
+		choice: colorless
+		choice:
+			name: alternate
+			visible: { stylesheet.style_info.support_alternate }
+			choice: white
+			choice: blue
+			choice: black
+			choice: red
+			choice: green
+	
 	choice:
 		name: 2 color
 		choice: white / blue
@@ -22,6 +48,118 @@ choice:
 		choice: black / green
 		choice: red / white
 		choice: green / blue
+		
+		choice:
+			name: colorless
+			visible: {set.extended_frames}
+			choice: colorless / white
+			choice: colorless / blue
+			choice: colorless / black
+			choice: colorless / red
+			choice: colorless / green
+			choice: white / colorless
+			choice: blue / colorless
+			choice: black / colorless
+			choice: red / colorless
+			choice: green / colorless
+		
+		choice: 
+			name: alternate on left
+			visible: { stylesheet.style_info.support_alternate and set.extended_frames }
+			choice: white / blue
+			choice: blue / black
+			choice: black / red
+			choice: red / green
+			choice: green / white
+			choice: white / black
+			choice: blue / red
+			choice: black / green
+			choice: red / white
+			choice: green / blue
+			
+			choice:
+				name: reverse order
+				choice: blue / white
+				choice: black / blue
+				choice: red / black
+				choice: green / white
+				choice: white / green
+				choice: black / white
+				choice: red / blue
+				choice: green / black
+				choice: white / red
+				choice: blue / green
+			
+			choice:
+				name: colorless
+				choice: white / colorless
+				choice: blue / colorless
+				choice: black / colorless
+				choice: red / colorless
+				choice: green / colorless
+		
+		choice:
+			name: alternate on right
+			visible: { stylesheet.style_info.support_alternate and set.extended_frames }
+			choice: white / blue
+			choice: blue / black
+			choice: black / red
+			choice: red / green
+			choice: green / white
+			choice: white / black
+			choice: blue / red
+			choice: black / green
+			choice: red / white
+			choice: green / blue
+			
+			choice:
+				name: reverse order
+				choice: blue / white
+				choice: black / blue
+				choice: red / black
+				choice: green / white
+				choice: white / green
+				choice: black / white
+				choice: red / blue
+				choice: green / black
+				choice: white / red
+				choice: blue / green
+			
+			choice:
+				name: colorless
+				choice: colorless / white
+				choice: colorless / blue
+				choice: colorless / black
+				choice: colorless / red
+				choice: colorless / green
+		
+		choice:
+			name: full alternate
+			visible: { stylesheet.style_info.support_alternate and set.extended_frames }
+			choice: white / blue
+			choice: blue / black
+			choice: black / red
+			choice: red / green
+			choice: green / white
+			choice: white / black
+			choice: blue / red
+			choice: black / green
+			choice: red / white
+			choice: green / blue
+			
+			choice:
+				name: reverse order
+				choice: blue / white
+				choice: black / blue
+				choice: red / black
+				choice: green / white
+				choice: white / green
+				choice: black / white
+				choice: red / blue
+				choice: green / black
+				choice: white / red
+				choice: blue / green
+	
 	choice:
 		name:   3 color
 		choice: white / blue / black
@@ -34,6 +172,7 @@ choice:
 		choice: black / green / white
 		choice: red / white / blue
 		choice: green / blue / black
+	
 	choice:
 		name:   4 color
 		choice: w/u/b/r
@@ -41,33 +180,12 @@ choice:
 		choice: b/r/g/w
 		choice: r/g/w/u
 		choice: g/w/u/b
+	
 	choice:
 		name:   5 color
 		choice: w/u/b/r/g
 		choice: w/u/b/r/g (horizontal)
-choice:
-	name:   land
-	group choice: colorless
-	choice:
-		name: 1 color
-		choice: white
-		choice: blue
-		choice: black
-		choice: red
-		choice: green
-		choice: multicolor
-	choice:
-		name: 2 color
-		choice: white / blue
-		choice: blue / black
-		choice: black / red
-		choice: red / green
-		choice: green / white
-		choice: white / black
-		choice: blue / red
-		choice: black / green
-		choice: red / white
-		choice: green / blue
+	
 choice:
 	name:   hybrid
 	choice:
@@ -82,13 +200,51 @@ choice:
 		choice: black / green
 		choice: red / white
 		choice: green / blue
-		choice: colorless / white
-		choice: colorless / blue
-		choice: colorless / black
-		choice: colorless / red
-		choice: colorless / green
+		
+		choice:
+			name: reverse order
+			visible: { set.extended_frames }
+			choice: blue / white
+			choice: black / blue
+			choice: red / black
+			choice: green / red
+			choice: white / green
+			choice: black / white
+			choice: red / blue
+			choice: green / black
+			choice: white / red
+			choice: blue / green
+		
+		choice:
+			name: colorless
+			visible: { set.extended_frames }
+			choice: colorless / white
+			choice: colorless / blue
+			choice: colorless / black
+			choice: colorless / red
+			choice: colorless / green
+			choice: white / colorless
+			choice: blue / colorless
+			choice: black / colorless
+			choice: red / colorless
+			choice: green / colorless
+		
+		choice:
+			name: alternate
+			visible: { stylesheet.style_info.support_alternate }
+			choice: white / blue
+			choice: blue / black
+			choice: black / red
+			choice: red / green
+			choice: green / white
+			choice: white / black
+			choice: blue / red
+			choice: black / green
+			choice: red / white
+			choice: green / blue
+	
 	choice:
-		name: 3 color
+		name:   3 color
 		choice: white / blue / black
 		choice: blue / black / red
 		choice: black / red / green
@@ -99,18 +255,21 @@ choice:
 		choice: black / green / white
 		choice: red / white / blue
 		choice: green / blue / black
+		
 		choice:
-			name:	horizontal
-			choice: white / blue / black
-			choice: blue / black / red
-			choice: black / red / green
-			choice: red / green / white
-			choice: green / white / blue
-			choice: white / black / red
-			choice: blue / red / green
-			choice: black / green / white
-			choice: red / white / blue
-			choice: green / blue / black
+			name:	 horizontal
+			visible: { set.extended_frames }
+			choice:  white / blue / black
+			choice:  blue / black / red
+			choice:  black / red / green
+			choice:  red / green / white
+			choice:  green / white / blue
+			choice:  white / black / red
+			choice:  blue / red / green
+			choice:  black / green / white
+			choice:  red / white / blue
+			choice:  green / blue / black
+	
 	choice:
 		name:   4 color
 		choice: w/u/b/r
@@ -118,17 +277,21 @@ choice:
 		choice: b/r/g/w
 		choice: r/g/w/u
 		choice: g/w/u/b
+		
 		choice:
 			name:	horizontal
+			visible: { set.extended_frames }
 			choice: w/u/b/r
 			choice: u/b/r/g
 			choice: b/r/g/w
 			choice: r/g/w/u
 			choice: g/w/u/b
+	
 	choice:
 		name:   5 color
 		choice: w/u/b/r/g
 		choice: w/u/b/r/g (horizontal)
+	
 	choice:
 		# Vertical hybrids, for flip cards
 		#   By: Wolfwood
@@ -163,3 +326,29 @@ choice:
 		choice: colorless / black
 		choice: colorless / red
 		choice: colorless / green
+
+choice:
+	name: land
+	group choice: colorless
+	choice: multicolor
+	
+	choice:
+		name:   1 color
+		choice: white
+		choice: blue
+		choice: black
+		choice: red
+		choice: green
+	
+	choice:
+		name:   2 color
+		choice: white / blue
+		choice: blue / black
+		choice: black / red
+		choice: red / green
+		choice: green / white
+		choice: white / black
+		choice: blue / red
+		choice: black / green
+		choice: red / white
+		choice: green / blue

@@ -121,6 +121,10 @@ void SetScriptManager::initDependencies(Context& ctx, Game& game) {
 	FOR_EACH(f, game.set_fields) {
 		f->initDependencies(ctx, Dependency(DEP_SET_FIELD, f->index));
 	}
+	// find dependencies of style fields
+	FOR_EACH(f, game.style_fields) {
+		f->initDependencies(ctx, Dependency(DEP_STYLE_FIELD, f->index));
+	}
 }
 
 
@@ -165,6 +169,13 @@ void SetScriptManager::onAction(const Action& action, bool undone) {
 		#ifdef LOG_UPDATES
 			wxLogDebug(_("-------------------------------\n"));
 		#endif
+		return;
+	}
+	TYPE_CASE_(action, DisplayChangeAction) {
+		FOR_EACH(f, set.game->style_fields) {
+			updateAllDependend(f->dependent_scripts);
+		}
+		return;
 	}
 }
 
@@ -188,7 +199,7 @@ void SetScriptManager::updateValue(Value& value, const CardP& card) {
 	// execute script for initial changed value
 	value.update(getContext(card));
 	#ifdef LOG_UPDATES
-		wxLogDebug(_("Start:     %s"), value.fieldP->name);
+		wxLogDebug(_("Start:     %s"), value.fieldP->name.c_str());
 	#endif
 	// update dependent scripts
 	alsoUpdate(to_update, value.fieldP->dependent_scripts, card);
@@ -199,26 +210,30 @@ void SetScriptManager::updateValue(Value& value, const CardP& card) {
 }
 
 void SetScriptManager::updateAll() {
-	#ifdef LOG_UPDATES
-		wxLogDebug(_("Update all"));
-	#endif
-	// update set data
-	Context& ctx = getContext(set.stylesheet);
-	FOR_EACH(v, set.data) {
-		v->update(ctx);
-	}
-	// update card data of all cards
-	FOR_EACH(card, set.cards) {
-		Context& ctx = getContext(card);
-		FOR_EACH(v, card->data) {
+	try {
+		#ifdef LOG_UPDATES
+			wxLogDebug(_("Update all"));
+		#endif
+		// update set data
+		Context& ctx = getContext(set.stylesheet);
+		FOR_EACH(v, set.data) {
 			v->update(ctx);
 		}
+		// update card data of all cards
+		FOR_EACH(card, set.cards) {
+			Context& ctx = getContext(card);
+			FOR_EACH(v, card->data) {
+				v->update(ctx);
+			}
+		}
+		// update things that depend on the card list
+		updateAllDependend(set.game->dependent_scripts_cards);
+
+		#ifdef LOG_UPDATES
+			wxLogDebug(_("-------------------------------\n"));
+		#endif
 	}
-	// update things that depend on the card list
-	updateAllDependend(set.game->dependent_scripts_cards);
-	#ifdef LOG_UPDATES
-		wxLogDebug(_("-------------------------------\n"));
-	#endif
+	catch (Error& e) { handle_error(e); }
 }
 
 void SetScriptManager::updateAllDependend(const vector<Dependency>& dependent_scripts) {
@@ -247,12 +262,12 @@ void SetScriptManager::updateToUpdate(const ToUpdate& u, deque<ToUpdate>& to_upd
 		// u.value has changed, also update values with a dependency on u.value
 		alsoUpdate(to_update, u.value->fieldP->dependent_scripts, u.card);
 	#ifdef LOG_UPDATES
-		wxLogDebug(_("Changed: %s"), u.value->fieldP->name);
+		wxLogDebug(_("Changed: %s"), u.value->fieldP->name.c_str());
 	#endif
 	}
 	#ifdef LOG_UPDATES
 	else
-		wxLogDebug(_("Same:    %s"), u.value->fieldP->name);
+		wxLogDebug(_("Same:    %s"), u.value->fieldP->name.c_str());
 	#endif
 }
 
@@ -278,6 +293,11 @@ void SetScriptManager::alsoUpdate(deque<ToUpdate>& to_update, const vector<Depen
 					to_update.push_back(ToUpdate(value.get(), card));
 				}
 				break;
+			} case DEP_STYLE_FIELD: {
+				// something changed the style fields (i.e. a new style loading) which means that
+				// all scripts dependent on the style data need reloading.
+				ValueP value = card->stylesheet->style_info.at(d.index);
+				to_update.push_back(ToUpdate(value.get(), CardP()));
 			} case DEP_STYLE: {
 				// a generated image has become invalid, there is not much we can do
 				// because the index is not exact enough, it only gives the field
@@ -294,6 +314,11 @@ void SetScriptManager::alsoUpdate(deque<ToUpdate>& to_update, const vector<Depen
 				alsoUpdate(to_update, f->dependent_scripts, card);
 				break;
 			} case DEP_SET_COPY_DEP: {
+				// propagate dependencies from another field
+				FieldP f = set.game->set_fields[d.index];
+				alsoUpdate(to_update, f->dependent_scripts, card);
+				break;
+			} case DEP_STYLE_COPY_DEP: {
 				// propagate dependencies from another field
 				FieldP f = set.game->set_fields[d.index];
 				alsoUpdate(to_update, f->dependent_scripts, card);

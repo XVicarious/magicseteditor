@@ -357,8 +357,8 @@ bool TextViewer::prepareLinesScale(RotatedDC& dc, const vector<CharInfo>& chars,
 	RealSize line_size(lineLeft(dc, style, 0), 0);
 	line.positions.push_back(line_size.width);
 	// The word we are currently reading
-	RealSize       word_size;
-	vector<double> positions_word; // positios for this word
+	RealSize       word_size(0,0);
+	vector<double> positions_word; // positions for this word
 	size_t         word_start = 0;
 	// For each character ...
 	for(size_t i = 0 ; i < chars.size() ; ++i) {
@@ -424,7 +424,7 @@ bool TextViewer::prepareLinesScale(RotatedDC& dc, const vector<CharInfo>& chars,
 			}
 			// height of the line
 			if (line_size.height < 0.01 && !lines.empty()) {
-				// if a line has 0 height, use the height of the line above it, but at most once
+				line.line_height = line_size.height;
 			} else {
 				line.line_height = line_size.height;
 			}

@@ -55,7 +55,7 @@ bool   DataViewer::drawBorders()   const { return false; }
 bool   DataViewer::drawEditing()   const { return false; }
 wxPen  DataViewer::borderPen(bool) const { return wxPen(); }
 ValueViewer* DataViewer::focusedViewer() const { return nullptr; }
-Context& DataViewer::getContext()  const { return set->getContext(); }
+Context& DataViewer::getContext()  const { if (card) return set->getContext(card); else return set->getContext(); }
 
 Rotation DataViewer::getRotation() const {
 	if (!stylesheet) stylesheet = set->stylesheet;

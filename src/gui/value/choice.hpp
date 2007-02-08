@@ -74,6 +74,7 @@ class DropDownChoiceList : public DropDownList {
 	inline bool isFieldDefault(size_t item) const { return item == 0 && hasFieldDefault(); }
 	inline bool isGroupDefault(size_t item) const { return item == 0 && hasGroupDefault(); }
 	inline bool isDefault     (size_t item) const { return item == 0 && hasDefault(); }
+	bool isVisible            (size_t item) const;
 	
 	// Find an item in the group of choices
 	ChoiceField::ChoiceP getChoice(size_t item) const;

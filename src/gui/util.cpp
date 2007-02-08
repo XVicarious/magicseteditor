@@ -92,10 +92,10 @@ Image load_resource_image(const String& name) {
 		static String path = wxStandardPaths::Get().GetDataDir() + _("/resource/");
 		String file = path + name; // if the name is in upper case, fix the call
 		wxImage resource;
-		if (wxFileExists(file + _(".png"))) resource.LoadFile(file + _(".png"));
-		else if (wxFileExists(file + _(".bmp"))) resource.LoadFile(file + _(".bmp"));
-		else if (wxFileExists(file + _(".ico"))) resource.LoadFile(file + _(".ico"));
-		else if (wxFileExists(file + _(".cur"))) resource.LoadFile(file + _(".cur"));
+		if (wxFileExists(file + _(".png"))) resource.LoadFile(file + _(".png"), wxBITMAP_TYPE_PNG);
+		else if (wxFileExists(file + _(".bmp"))) resource.LoadFile(file + _(".bmp"), wxBITMAP_TYPE_BMP);
+		else if (wxFileExists(file + _(".ico"))) resource.LoadFile(file + _(".ico"), wxBITMAP_TYPE_ICO);
+		else if (wxFileExists(file + _(".cur"))) resource.LoadFile(file + _(".cur"), wxBITMAP_TYPE_JPEG);
 		if (!resource.Ok()) handle_error(InternalError(String(_("Cannot find resource file at ")) + file));
 		return resource;
 	#else
