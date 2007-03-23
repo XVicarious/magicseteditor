@@ -184,13 +184,16 @@ void SetScriptManager::updateStyles(const CardP& card) {
 	StyleSheetP stylesheet = set.stylesheetFor(card);
 	Context& ctx = getContext(card);
 	// update all styles
-	FOR_EACH(s, stylesheet->card_style) {
-		if (s->update(ctx)) {
-			// style has changed, tell listeners
-//			ScriptStyleEvent change(s.get());
-//			set->actions.tellListeners(change);
+	try {
+		FOR_EACH(s, stylesheet->card_style) {
+			if (s->update(ctx)) {
+				// style has changed, tell listeners
+//				ScriptStyleEvent change(s.get());
+//				set->actions.tellListeners(change);
+			}
 		}
 	}
+	catch (Error& e) {handle_error(e);}
 }
 
 void SetScriptManager::updateValue(Value& value, const CardP& card) {

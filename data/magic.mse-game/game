@@ -493,14 +493,13 @@ card field:
 	name: card number
 	save value: false
 	script:
-		stylesheet.style_info.support_alternate
-		#position(
-		#	of: cards
-		#	in: set
-		#	order_by: { sort_index() + card.name }
-		#	) + 1
-		#+ "/" +
-		#number_of_items(in: set)
+		position(
+			of: cards
+			in: set
+			order_by: { sort_index() + card.name }
+			) + 1
+		+ "/" +
+		number_of_items(in: set)
 	card list visible: true
 	card list column: 10
 	card list width: 50

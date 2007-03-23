@@ -120,7 +120,7 @@ void ThumbnailThread::request(const ThumbnailRequestP& request) {
 		wxDateTime modified;
 		if (fn.GetTimes(0, &modified, 0) && modified >= request->modified) {
 			// yes it is
-			Image img(filename);
+			Image img(filename, wxBITMAP_TYPE_PNG);
 			request->store(img);
 			return;
 		}

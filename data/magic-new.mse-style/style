@@ -26,9 +26,16 @@ init script:
 	}
 	card_template      := { artifact_template() + "card.jpg" }
 	pt_template        := { artifact_template() + "pt.jpg" }
-	alternate_template := { if input[0] != "a" and input[0] != "l" and input[0] != "m"
-				then "a" + card_template()
-				else card_template()}
+	alternate_template := {
+		if input[0] != "a" and input[0] != "l"
+			then "a" + card_template()
+			else card_template()
+	}
+	alt_pt_template    := {
+		if input[0] != "a" and input[0] != "l"
+			then "a" + pt_template()
+			else pt_template()
+	}
 	
 	# Use the normal tap symbol
 	mana_t := {

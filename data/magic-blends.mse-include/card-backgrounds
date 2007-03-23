@@ -66,7 +66,7 @@ choice images:
 	multicolor 2 color alternate on left black / green			: script: multi_hybrid(card_hybrid_2("bga "))
 	multicolor 2 color alternate on left red / white			: script: multi_hybrid(card_hybrid_2("rwa "))
 	multicolor 2 color alternate on left green / blue			: script: multi_hybrid(card_hybrid_2("gua "))
-
+	
 	multicolor 2 color alternate on left reverse order blue / white		: script: multi_hybrid(card_hybrid_2("uwa "))
 	multicolor 2 color alternate on left reverse order black / blue		: script: multi_hybrid(card_hybrid_2("bua "))
 	multicolor 2 color alternate on left reverse order red / black		: script: multi_hybrid(card_hybrid_2("rba "))
