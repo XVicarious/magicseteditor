@@ -52,8 +52,8 @@ class ExportTemplate : public Packaged {
 struct ExportInfo {
 	ExportInfo();
 	
-	SetP               set;                ///< The set that is being exported
-	PackageP           export_template;    ///< The export template used
+	SetP_nullable      set;                ///< The set that is being exported, can be null when used from CLI
+	PackageP_nullable  export_template;    ///< The export template used, can be null when used from CLI
 	                                       ///  When using the CLI, this can be a fake package to allow reading from the cwd
 	String             directory_relative; ///< The directory for storing extra files (or "" if !export->create_directory)
 	                                       ///  This is just the directory name

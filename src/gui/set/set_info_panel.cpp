@@ -15,8 +15,8 @@
 
 // ----------------------------------------------------------------------------- : SetInfoPanel
 
-SetInfoPanel::SetInfoPanel(Window* parent, int id)
-	: SetWindowPanel(parent, id)
+SetInfoPanel::SetInfoPanel(Window* parent, int id, const SetP& set)
+	: SetWindowPanel(parent, id, set)
 {
 	// init controls
 	editor = new SetInfoEditor(this, wxID_ANY);

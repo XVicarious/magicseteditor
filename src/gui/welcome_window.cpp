@@ -114,7 +114,8 @@ void WelcomeWindow::onOpenSet(wxCommandEvent&) {
 }
 
 void WelcomeWindow::onNewSet(wxCommandEvent&) {
-	close(new_set_window(this));
+	SetP_nullable set = new_set_window(this);
+	if (set) close(from_non_null(set));
 }
 
 void WelcomeWindow::onOpenLast(wxCommandEvent&) {

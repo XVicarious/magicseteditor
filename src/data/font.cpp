@@ -51,7 +51,7 @@ void Font::initDependencies(Context& ctx, const Dependency& dep) const {
 }
 
 FontP Font::make(int add_flags, AColor* other_color, double* other_size) const {
-	FontP f(new Font(*this));
+	FontP f = intrusive(new Font(*this));
 	f->flags |= add_flags;
 	if (add_flags & FONT_CODE_STRING) {
 		f->color = Color(0,0,100);

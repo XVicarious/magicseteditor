@@ -65,30 +65,30 @@ void SymbolPartsSelection::clearChildren(SymbolPart* part) {
 	}
 }
 
-SymbolShapeP SymbolPartsSelection::getAShape() const {
+SymbolShapeP_nullable SymbolPartsSelection::getAShape() const {
 	FOR_EACH(s, selection) {
 		if (s->isSymbolShape()) return static_pointer_cast<SymbolShape>(s);
 	}
-	return SymbolShapeP();
+	return SymbolShapeP_nullable();
 }
 
-SymbolSymmetryP SymbolPartsSelection::getASymmetry() const {
+SymbolSymmetryP_nullable SymbolPartsSelection::getASymmetry() const {
 	FOR_EACH(s, selection) {
 		if (s->isSymbolSymmetry()) return static_pointer_cast<SymbolSymmetry>(s);
 	}
-	return SymbolSymmetryP();
+	return SymbolSymmetryP_nullable();
 }
 
 
 // ----------------------------------------------------------------------------- : Position based
 
-SymbolPartP SymbolPartsSelection::find(const SymbolPartP& part, const Vector2D& pos) const {
+SymbolPartP_nullable SymbolPartsSelection::find(const SymbolPartP& part, const Vector2D& pos) const {
 	if (SymbolShape* s = part->isSymbolShape()) {
 		if (point_in_shape(pos, *s)) return part;
 	}
 	if (SymbolGroup* g = part->isSymbolGroup()) {
 		FOR_EACH(p, g->parts) {
-			SymbolPartP found = find(p, pos);
+			SymbolPartP_nullable found = find(p, pos);
 			if (found) {
 				if (part->isSymbolSymmetry() || selected(found)) {
 					return found;
@@ -98,15 +98,15 @@ SymbolPartP SymbolPartsSelection::find(const SymbolPartP& part, const Vector2D& 
 			}
 		}
 	}
-	return SymbolPartP();
+	return SymbolPartP_nullable();
 }
 
-SymbolPartP SymbolPartsSelection::find(const Vector2D& position) const {
+SymbolPartP_nullable SymbolPartsSelection::find(const Vector2D& position) const {
 	FOR_EACH(p, root->parts) {
-		SymbolPartP found = find(p, position);
+		SymbolPartP_nullable found = find(p, position);
 		if (found) return found;
 	}
-	return SymbolPartP();
+	return SymbolPartP_nullable();
 }
 
 // ----------------------------------------------------------------------------- : Rectangle based

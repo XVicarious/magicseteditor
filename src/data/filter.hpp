@@ -17,7 +17,7 @@
 template <typename T>
 class Filter : public IntrusivePtrVirtualBase {
   public:
-	typedef intrusive_ptr<T> TP;
+	typedef intrusive_ptr_non_null<T> TP;
 	
 	virtual ~Filter() {}
 	/// Should an object be shown in the list?
@@ -83,6 +83,19 @@ class QuickFilter : public Filter<T> {
   private:
 	String query;
 };
+
+/// A filter that passes through everything
+template <typename T>
+class NoFilter : public Filter<T> {
+  public:
+	virtual bool keep(T const& x) const {
+		return true;
+	}
+};
+
+template <typename T> intrusive_ptr_non_null<Filter<T> > no_filter() {
+	return intrusive(new NoFilter<T>);
+}
 
 // ----------------------------------------------------------------------------- : EOF
 #endif

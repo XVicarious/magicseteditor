@@ -25,10 +25,6 @@ void parse_enum(const String&, ImageCombine& out);
 
 // ----------------------------------------------------------------------------- : Utility
 
-template <> inline GeneratedImageP from_script<GeneratedImageP>(const ScriptValueP& value) {
-	return image_from_script(value);
-}
-
 SCRIPT_FUNCTION(to_image) {
 	SCRIPT_PARAM_C(GeneratedImageP, input);
 	return input;
@@ -156,7 +152,7 @@ SCRIPT_FUNCTION(symbol_variation) {
 	} else if (valueO) {
 		throw ScriptErrorConversion(valueO->typeName(), _TYPE_("symbol" ));
 	} else {
-		filename = from_script<String>(symbol);
+		filename = symbol->toString();
 	}
 	// known variation?
 	SCRIPT_OPTIONAL_PARAM_(String, variation)
@@ -164,7 +160,7 @@ SCRIPT_FUNCTION(symbol_variation) {
 		// find style
 		SCRIPT_PARAM(Set*, set);
 		SCRIPT_OPTIONAL_PARAM_(CardP, card);
-		SymbolStyleP style = dynamic_pointer_cast<SymbolStyle>(set->stylesheetForP(card)->styleFor(value->fieldP));
+		SymbolStyleP_nullable style = dynamic_pointer_cast<SymbolStyle>(set->stylesheetForP(card)->styleFor(value->fieldP));
 		if (!style) throw InternalError(_("Symbol value has a style of the wrong type"));
 		// find variation
 		FOR_EACH(v, style->variations) {
@@ -178,7 +174,7 @@ SCRIPT_FUNCTION(symbol_variation) {
 		// custom variation
 		SCRIPT_PARAM(double, border_radius);
 		SCRIPT_OPTIONAL_PARAM_(String, fill_type);
-		SymbolVariationP var(new SymbolVariation);
+		SymbolVariationP var = intrusive(new SymbolVariation);
 		var->border_radius = border_radius;
 		if (fill_type == _("solid") || fill_type.empty()) {
 			SCRIPT_PARAM(Color, fill_color);

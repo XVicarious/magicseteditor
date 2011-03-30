@@ -211,7 +211,7 @@ int MSE::OnRun() {
 					return EXIT_SUCCESS;
 				} else if (args[0] == _("--cli")) {
 					// command line interface
-					SetP set;
+					SetP_nullable set;
 					vector<String> scripts;
 					bool quiet = false;
 					for (size_t i = 1 ; i < args.size() ; ++i) {

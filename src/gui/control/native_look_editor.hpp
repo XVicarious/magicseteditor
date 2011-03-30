@@ -73,7 +73,7 @@ class StylingEditor : public NativeLookEditor {
 	/// Show the styling for given stylesheet in the editor
 	void showStylesheet(const StyleSheetP& stylesheet);
 	/// Show the styling for given card
-	void showCard(const CardP& card);
+	void showCard(const CardP_nullable& card);
   protected:
 	virtual void onChangeSet();
 };

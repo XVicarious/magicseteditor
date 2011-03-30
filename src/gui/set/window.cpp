@@ -48,6 +48,7 @@ DECLARE_TYPEOF_COLLECTION(String);
 
 SetWindow::SetWindow(Window* parent, const SetP& set)
 	: wxFrame(parent, wxID_ANY, _TITLE_("magic set editor"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE | wxNO_FULL_REPAINT_ON_RESIZE)
+	, SetView(set)
 	, current_panel(nullptr)
 	, find_dialog(nullptr)
 	, find_data(wxFR_DOWN)
@@ -151,13 +152,13 @@ SetWindow::SetWindow(Window* parent, const SetP& set)
 	#endif
 	
 	// panels
-	addPanel(menuWindow, tabBar, new CardsPanel     (this, wxID_ANY), 0, _("window_cards"),      _("cards tab"));
-	addPanel(menuWindow, tabBar, new StylePanel     (this, wxID_ANY), 1, _("window_style"),      _("style tab"));
-	addPanel(menuWindow, tabBar, new SetInfoPanel   (this, wxID_ANY), 2, _("window_set_info"),   _("set info tab"));
-	addPanel(menuWindow, tabBar, new KeywordsPanel  (this, wxID_ANY), 3, _("window_keywords"),   _("keywords tab"));
-	addPanel(menuWindow, tabBar, new StatsPanel     (this, wxID_ANY), 4, _("window_statistics"), _("stats tab"));
-	addPanel(menuWindow, tabBar, new RandomPackPanel(this, wxID_ANY), 5, _("window_random_pack"),_("random pack tab"));
-	addPanel(menuWindow, tabBar, new ConsolePanel   (this, wxID_ANY), 6, _("window_console"),    _("console tab"));
+	addPanel(menuWindow, tabBar, new CardsPanel     (this, wxID_ANY, set), 0, _("window_cards"),      _("cards tab"));
+	addPanel(menuWindow, tabBar, new StylePanel     (this, wxID_ANY, set), 1, _("window_style"),      _("style tab"));
+	addPanel(menuWindow, tabBar, new SetInfoPanel   (this, wxID_ANY, set), 2, _("window_set_info"),   _("set info tab"));
+	addPanel(menuWindow, tabBar, new KeywordsPanel  (this, wxID_ANY, set), 3, _("window_keywords"),   _("keywords tab"));
+	addPanel(menuWindow, tabBar, new StatsPanel     (this, wxID_ANY, set), 4, _("window_statistics"), _("stats tab"));
+	addPanel(menuWindow, tabBar, new RandomPackPanel(this, wxID_ANY, set), 5, _("window_random_pack"),_("random pack tab"));
+	addPanel(menuWindow, tabBar, new ConsolePanel   (this, wxID_ANY, set), 6, _("window_console"),    _("console tab"));
 	selectPanel(ID_WINDOW_CARDS); // select cards panel
 	
 	// loose ends
@@ -472,12 +473,10 @@ bool SetWindow::askSaveAndContinue() {
 }
 
 void SetWindow::switchSet(const SetP& new_set) {
-	if (new_set) {
-		if (settings.open_sets_in_new_window) {
-			(new SetWindow(nullptr, new_set))->Show();
-		} else {
-			setSet(new_set);
-		}
+	if (settings.open_sets_in_new_window) {
+		(new SetWindow(nullptr, new_set))->Show();
+	} else {
+		setSet(new_set);
 	}
 }
 
@@ -554,8 +553,8 @@ void SetWindow::updateRecentSets() {
 void SetWindow::onFileNew(wxCommandEvent&) {
 	if (!settings.open_sets_in_new_window && isOnlyWithSet() && !askSaveAndContinue()) return;
 	// new set?
-	SetP new_set = new_set_window(this);
-	switchSet(new_set);
+	SetP_nullable new_set = new_set_window(this);
+	if (new_set) switchSet(from_non_null(new_set));
 }
 
 void SetWindow::onFileOpen(wxCommandEvent&) {
@@ -628,14 +627,14 @@ void SetWindow::onFileExportMenu(wxCommandEvent& ev) {
 }
 
 void SetWindow::onFileExportImage(wxCommandEvent&) {
-	CardP card = current_panel->selectedCard();
+	CardP_nullable card = current_panel->selectedCard();
 	if (!card)  return; // no card selected
 	String name = wxFileSelector(_TITLE_("save image"), settings.default_export_dir, clean_filename(card->identification()), _(""),
 		                         _("JPEG images (*.jpg)|*.jpg|Windows bitmaps (*.bmp)|*.bmp|PNG images (*.png)|*.png|TIFF images (*.tif)|*.tif"),
 		                         wxFD_SAVE | wxFD_OVERWRITE_PROMPT, this);
 	if (!name.empty()) {
 		settings.default_export_dir = wxPathOnly(name);
-		export_image(set, card, name);
+		export_image(set, from_non_null(card), name);
 	}
 }
 

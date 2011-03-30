@@ -204,7 +204,7 @@ void Keyword::prepare(const vector<KeywordParamP>& param_types, bool force) {
 			size_t start = skip_tag(match, i), end = match_close_tag(match, i);
 			String type = match.substr(start, end-start);
 			// find parameter type 'type'
-			KeywordParamP param;
+			KeywordParamP_nullable param;
 			FOR_EACH_CONST(pt, param_types) {
 				if (pt->name == type) {
 					param = pt;
@@ -629,8 +629,8 @@ bool KeywordDatabase::tryExpand(const Keyword& kw,
 				}
 			}
 			// to script
-			KeywordParamValueP script_param(new KeywordParamValue(kwp.name, separator_before, separator_after, param));
-			KeywordParamValueP script_part (new KeywordParamValue(kwp.name, separator_before, separator_after, part));
+			KeywordParamValueP script_param = intrusive(new KeywordParamValue(kwp.name, separator_before, separator_after, param));
+			KeywordParamValueP script_part  = intrusive(new KeywordParamValue(kwp.name, separator_before, separator_after, part));
 			// process param
 			if (param.empty()) {
 				// placeholder

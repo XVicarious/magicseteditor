@@ -61,8 +61,8 @@ class PrintJob : public IntrusivePtrBase<PrintJob> {
 
 // ----------------------------------------------------------------------------- : Printing
 
-/// Make a print job, by asking the user for options, and card selection
-PrintJobP make_print_job(Window* parent, const SetP& set, const ExportCardSelectionChoices& choices);
+/// Make a print job, by asking the user for options, and card selection, returns null if the user cancels
+PrintJobP_nullable make_print_job(Window* parent, const SetP& set, const ExportCardSelectionChoices& choices);
 
 /// Show a print preview for the given set
 void print_preview(Window* parent, const PrintJobP& job);

@@ -47,7 +47,7 @@ void PackageUpdateList::TreeItem::add(const InstallablePackageP& package, const 
 			// already have this child
 			if (pos == String::npos && ti->package) {
 				// two packages with the same path
-				TreeItemP ti2(new TreeItem);
+				TreeItemP ti2 = intrusive(new TreeItem);
 				ti2->label = name;
 				children.insert(ti_IT.first, ti2);
 				ti2->add(package, rest, level + 1);
@@ -58,7 +58,7 @@ void PackageUpdateList::TreeItem::add(const InstallablePackageP& package, const 
 		}
 	}
 	// don't have this child
-	TreeItemP ti(new TreeItem);
+	TreeItemP ti = intrusive(new TreeItem);
 	children.push_back(ti);
 	ti->label = name;
 	ti->add(package, rest, level + 1);

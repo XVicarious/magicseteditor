@@ -246,7 +246,7 @@ void CurveDragAction::move(const Vector2D& delta, double t) {
 
 ControlPointAddAction::ControlPointAddAction(const SymbolShapeP& shape, UInt insert_after, double t)
 	: shape(shape)
-	, new_point(new ControlPoint())
+	, new_point(intrusive(new ControlPoint()))
 	, insert_after(insert_after)
 	, point1(shape->getPoint(insert_after))
 	, point2(shape->getPoint(insert_after + 1))

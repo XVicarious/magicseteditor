@@ -55,6 +55,9 @@ class Writer {
 	template <typename T> void handle(const T&);
 	/// Write a intrusive_ptr to the output stream
 	template <typename T> void handle(const intrusive_ptr<T>&);
+	#if USE_NON_NULL_TYPE
+	template <typename T> void handle(const intrusive_ptr_non_null<T>& x){ handle(static_cast<const intrusive_ptr<T>&>(x)); }
+	#endif
 	/// Write a map to the output stream
 	template <typename K, typename V> void handle(const map<K,V>&);
 	/// Write an IndexMap to the output stream
@@ -68,6 +71,9 @@ class Writer {
 	// special behaviour
 	void handle(const GameP&);
 	void handle(const StyleSheetP&);
+	#if USE_NON_NULL_TYPE
+	void handle(const StyleSheetP_nullable&);
+	#endif
 	
   private:
 	// --------------------------------------------------- : Data

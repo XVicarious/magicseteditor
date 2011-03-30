@@ -86,7 +86,7 @@ class OptionalScript {
 	
 	/// Get access to the script, be careful
 	Script& getMutableScript();
-	inline ScriptP getScriptP() const { return script; }
+	inline ScriptP_nullable getScriptP() const { return script; }
 	inline void setScriptP(const ScriptP& new_script) { script = new_script; }
 	/// Get access to the unparsed value
 	inline const String& getUnparsed() const  { return unparsed; }
@@ -94,8 +94,8 @@ class OptionalScript {
 	inline void setUnparsed(String& new_unparsed) { unparsed = new_unparsed; }
 	
   protected:
-	ScriptP script;		///< The script, may be null if there is no script
-	String unparsed;	///< Unparsed script, for writing back to a file
+	ScriptP_nullable script; ///< The script, may be null if there is no script
+	String unparsed; ///< Unparsed script, for writing back to a file
 	// parse the unparsed string, while reading
 	void parse(Reader&, bool string_mode = false);
 	DECLARE_REFLECTION();

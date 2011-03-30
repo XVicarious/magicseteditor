@@ -73,11 +73,11 @@ Context& SetScriptContext::getContext(const StyleSheetP& stylesheet) {
 		return *ctx;
 	}
 }
-Context& SetScriptContext::getContext(const CardP& card) {
+Context& SetScriptContext::getContext(const CardP_nullable& card) {
 	StyleSheetP stylesheet = set.stylesheetForP(card);
 	Context& ctx = getContext(stylesheet);
 	if (card) {
-		ctx.setVariable(SCRIPT_VAR_card,    to_script(card));
+		ctx.setVariable(SCRIPT_VAR_card,    to_script(from_non_null(card)));
 		ctx.setVariable(SCRIPT_VAR_styling, to_script(&set.stylingDataFor(card)));
 	} else {
 		ctx.setVariable(SCRIPT_VAR_card,    script_nil);
@@ -156,7 +156,7 @@ void SetScriptManager::onAction(const Action& action, bool undone) {
 		if (action.card) {
 			#ifdef USE_INTRUSIVE_PTR
 				// we can just turn the Card* into a CardP
-				updateValue(*action.valueP, CardP(const_cast<Card*>(action.card)));
+				updateValue(*action.valueP, intrusive_from_this(const_cast<Card*>(action.card)));
 				return;
 			#else
 				// find the affected card
@@ -184,7 +184,7 @@ void SetScriptManager::onAction(const Action& action, bool undone) {
 				return;
 			}
 			// a set or styling value
-			updateValue(*action.valueP, CardP());
+			updateValue(*action.valueP, CardP_nullable());
 		}
 	}
 	TYPE_CASE_(action, ScriptValueEvent) {
@@ -270,7 +270,7 @@ void SetScriptManager::updateDelayed() {
 	delay = 0;
 }
 
-void SetScriptManager::updateValue(Value& value, const CardP& card) {
+void SetScriptManager::updateValue(Value& value, const CardP_nullable& card) {
 	Age starting_age; // the start of the update process
 	deque<ToUpdate> to_update;
 	// execute script for initial changed value
@@ -323,7 +323,7 @@ void SetScriptManager::updateAll() {
 	#endif
 }
 
-void SetScriptManager::updateAllDependend(const vector<Dependency>& dependent_scripts, const CardP& card) {
+void SetScriptManager::updateAllDependend(const vector<Dependency>& dependent_scripts, const CardP_nullable& card) {
 	deque<ToUpdate> to_update;
 	Age starting_age;
 	alsoUpdate(to_update, dependent_scripts, card);
@@ -365,12 +365,12 @@ void SetScriptManager::updateToUpdate(const ToUpdate& u, deque<ToUpdate>& to_upd
 	#endif
 }
 
-void SetScriptManager::alsoUpdate(deque<ToUpdate>& to_update, const vector<Dependency>& deps, const CardP& card) {
+void SetScriptManager::alsoUpdate(deque<ToUpdate>& to_update, const vector<Dependency>& deps, const CardP_nullable& card) {
 	FOR_EACH_CONST(d, deps) {
 		switch (d.type) {
 			case DEP_SET_FIELD: {
 				ValueP value = set.data.at(d.index);
-				to_update.push_back(ToUpdate(value.get(), CardP()));
+				to_update.push_back(ToUpdate(value.get(), CardP_nullable()));
 				break;
 			} case DEP_CARD_FIELD: {
 				if (card) {

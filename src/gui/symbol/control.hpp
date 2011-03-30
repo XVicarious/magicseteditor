@@ -72,10 +72,10 @@ class SymbolControl : public wxControl, public SymbolViewer {
 	
   public: 
 	/// What parts are selected?
-	SymbolPartsSelection selected_parts;
-	SymbolPartP          highlight_part;    ///< part the mouse cursor is over
-	SymbolShapeP         selected_shape;    ///< if there is a single selection
-	SymbolSymmetryP      selected_symmetry; ///< if there is a single selection
+	SymbolPartsSelection     selected_parts;
+	SymbolPartP_nullable     highlight_part;    ///< part the mouse cursor is over
+	SymbolShapeP_nullable    selected_shape;    ///< if there is a single selection
+	SymbolSymmetryP_nullable selected_symmetry; ///< if there is a single selection
 	
 	/// Parent window 
 	SymbolWindow* parent;

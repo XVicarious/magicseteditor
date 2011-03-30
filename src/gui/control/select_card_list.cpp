@@ -16,8 +16,8 @@ DECLARE_TYPEOF_COLLECTION(CardP);
 
 // ----------------------------------------------------------------------------- : SelectCardList
 
-SelectCardList::SelectCardList(Window* parent, int id, long additional_style)
-	: CardListBase(parent, id, additional_style)
+SelectCardList::SelectCardList(Window* parent, int id, SetP const& set, long additional_style)
+	: CardListBase(parent, id, set, additional_style)
 {
 	// create image list
 	wxImageList* il = new wxImageList(15,15);
@@ -84,17 +84,17 @@ void SelectCardList::onKeyDown(wxKeyEvent& ev) {
 	}
 	switch (ev.GetKeyCode()) {
 		case WXK_SPACE: {
-			toggle(getCard());
+			toggle(from_non_null(getCard()));
 			RefreshItem(selected_item_pos);
 			break;
 		}
 		case WXK_NUMPAD_ADD: case '+': {
-			selected.insert(getCard());
+			selected.insert(from_non_null(getCard()));
 			RefreshItem(selected_item_pos);
 			break;
 		}
 		case WXK_NUMPAD_SUBTRACT: case '-': {
-			selected.erase(getCard());
+			selected.erase(from_non_null(getCard()));
 			RefreshItem(selected_item_pos);
 			break;
 		}

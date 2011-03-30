@@ -395,11 +395,11 @@ void parseOper(TokenIterator& input, Script& script, Precedence min_prec, Instru
 void parseCallArguments(TokenIterator& input, Script& script, vector<Variable>& arguments);
 
 
-ScriptP parse(const String& s, Packaged* package, bool string_mode, vector<ScriptParseError>& errors_out) {
+ScriptP_nullable parse(const String& s, Packaged* package, bool string_mode, vector<ScriptParseError>& errors_out) {
 	errors_out.clear();
 	// parse
 	TokenIterator input(s, package, string_mode, errors_out);
-	ScriptP script(new Script);
+	ScriptP script = intrusive(new Script);
 	parseOper(input, *script, PREC_ALL);
 	Token eof = input.read();
 	if (eof != TOK_EOF) {
@@ -409,17 +409,17 @@ ScriptP parse(const String& s, Packaged* package, bool string_mode, vector<Scrip
 	if (errors_out.empty()) {
 		return script;
 	} else {
-		return ScriptP();
+		return ScriptP_nullable();
 	}
 }
 
 ScriptP parse(const String& s, Packaged* package, bool string_mode) {
 	vector<ScriptParseError> errors;
-	ScriptP script = parse(s, package, string_mode, errors);
-	if (!errors.empty()) {
+	ScriptP_nullable script = parse(s, package, string_mode, errors);
+	if (!errors.empty() || !script) {
 		throw ScriptParseErrors(errors);
 	}
-	return script;
+	return from_non_null(script);
 }
 
 
@@ -444,7 +444,7 @@ void parseExpr(TokenIterator& input, Script& script, Precedence minPrec) {
 			expectToken(input, _(")"), &token);
 		} else if (token == _("{")) {
 			// {} = function block. Parse a new Script
-			intrusive_ptr<Script> subScript(new Script);
+			ScriptP subScript = intrusive(new Script);
 			parseOper(input, *subScript, PREC_ALL);
 			expectToken(input, _("}"), &token);
 			script.addInstruction(I_PUSH_CONST, subScript);

@@ -28,7 +28,7 @@ class ColorField : public Field {
 	DECLARE_FIELD_TYPE(Color);
 	
 	class Choice;
-	typedef intrusive_ptr<Choice> ChoiceP;
+	typedef intrusive_ptr_non_null<Choice> ChoiceP;
 	
 	OptionalScript     script;			///< Script to apply to all values
 	OptionalScript     default_script;	///< Script that generates the default value

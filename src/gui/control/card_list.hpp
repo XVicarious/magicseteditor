@@ -42,7 +42,7 @@ struct CardSelectEvent : public wxCommandEvent {
 	{}
 	
 	/// The selected card
-	CardP getCard() const;
+	CardP_nullable getCard() const;
 	/// All focused cards
 	void getSelection(vector<CardP>& out) const;
   private:
@@ -60,13 +60,13 @@ struct CardSelectEvent : public wxCommandEvent {
  */
 class CardListBase : public ItemList, public SetView {
   public:
-	CardListBase(Window* parent, int id, long additional_style = 0);
+	CardListBase(Window* parent, int id, SetP const& set, long additional_style = 0);
 	~CardListBase();
 	
 	// --------------------------------------------------- : Selection
 	
-	inline CardP getCard() const            { return static_pointer_cast<Card>(selected_item); }
-	inline void  setCard(const CardP& card) { selectItem(card, true, false); }
+	inline CardP_nullable getCard() const { return static_pointer_cast<Card>(selected_item); }
+	inline void  setCard(const CardP_nullable& card) { selectItem(card, true, false); }
 		
 	// --------------------------------------------------- : Clipboard
 	
@@ -125,7 +125,7 @@ class CardListBase : public ItemList, public SetView {
   private:
 	// display stuff
 	vector<FieldP> column_fields; ///< The field to use for each column (by column index)
-	FieldP alternate_sort_field;  ///< Second field to sort by, if the column doesn't suffice
+	FieldP_nullable alternate_sort_field; ///< Second field to sort by, if the column doesn't suffice
 	
 	mutable wxListItemAttr item_attr; // for OnGetItemAttr
 	

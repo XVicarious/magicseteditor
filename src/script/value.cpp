@@ -25,11 +25,11 @@ bool         ScriptValue::toBool()                          const { throw Script
 double       ScriptValue::toDouble()                        const { throw ScriptErrorConversion(typeName(), _TYPE_("double"  )); }
 AColor       ScriptValue::toColor()                         const { throw ScriptErrorConversion(typeName(), _TYPE_("color"   )); }
 wxDateTime   ScriptValue::toDateTime()                      const { throw ScriptErrorConversion(typeName(), _TYPE_("date"    )); }
-GeneratedImageP ScriptValue::toImage(const ScriptValueP&)   const { throw ScriptErrorConversion(typeName(), _TYPE_("image"   )); }
+GeneratedImageP ScriptValue::toImage()                      const { throw ScriptErrorConversion(typeName(), _TYPE_("image"   )); }
 String       ScriptValue::toCode()                          const { return toString(); }
 ScriptValueP ScriptValue::do_eval(Context&, bool)           const { return delay_error(ScriptErrorConversion(typeName(), _TYPE_("function"))); }
-ScriptValueP ScriptValue::next(ScriptValueP* key_out)             { throw InternalError(_("Can't convert from ")+typeName()+_(" to iterator")); }
-ScriptValueP ScriptValue::makeIterator(const ScriptValueP&) const { return delay_error(ScriptErrorConversion(typeName(), _TYPE_("collection"))); }
+ScriptValueP_nullable ScriptValue::next(ScriptValueP* key_out)    { throw InternalError(_("Can't convert from ")+typeName()+_(" to iterator")); }
+ScriptValueP ScriptValue::makeIterator()                    const { return delay_error(ScriptErrorConversion(typeName(), _TYPE_("collection"))); }
 int          ScriptValue::itemCount()                       const { throw ScriptErrorConversion(typeName(), _TYPE_("collection")); }
 CompareWhat  ScriptValue::compareAs(String& compare_str, void const*& compare_ptr) const {
 	compare_str = toCode();
@@ -48,7 +48,7 @@ ScriptValueP ScriptValue::getIndex(int index) const {
 }
 
 
-ScriptValueP ScriptValue::simplifyClosure(ScriptClosure&) const { return ScriptValueP(); }
+ScriptValueP_nullable ScriptValue::simplifyClosure(ScriptClosure&) const { return ScriptValueP_nullable(); }
 
 ScriptValueP ScriptValue::dependencyMember(const String& name, const Dependency&) const { return dependency_dummy; }
 ScriptValueP ScriptValue::dependencyName(const ScriptValue& container, const Dependency& dep) const {
@@ -75,13 +75,13 @@ bool equal(const ScriptValueP& a, const ScriptValueP& b) {
 	} else if (at == SCRIPT_COLLECTION && bt == SCRIPT_COLLECTION) {
 		// compare each element
 		if (a->itemCount() != b->itemCount()) return false;
-		ScriptValueP a_it = a->makeIterator(a);
-		ScriptValueP b_it = b->makeIterator(b);
+		ScriptValueP a_it = a->makeIterator();
+		ScriptValueP b_it = b->makeIterator();
 		while (true) {
-			ScriptValueP a_v = a_it->next();
-			ScriptValueP b_v = b_it->next();
+			ScriptValueP_nullable a_v = a_it->next();
+			ScriptValueP_nullable b_v = b_it->next();
 			if (!a_v || !b_v) return a_v == b_v;
-			if (!equal(a_v, b_v)) return false;
+			if (!equal(from_non_null(a_v), from_non_null(b_v))) return false;
 		}
 	} else {
 		String      as,  bs;
@@ -111,11 +111,11 @@ bool   ScriptDelayedError::toBool()    const            { throw error; }
 AColor ScriptDelayedError::toColor()   const            { throw error; }
 int    ScriptDelayedError::itemCount() const            { throw error; }
 CompareWhat ScriptDelayedError::compareAs(String&, void const*&) const { throw error; }
-ScriptValueP ScriptDelayedError::getMember(const String&) const                           { return intrusive(new ScriptDelayedError(error)); }
-ScriptValueP ScriptDelayedError::dependencyMember(const String&, const Dependency&) const { return intrusive(new ScriptDelayedError(error)); }
-ScriptValueP ScriptDelayedError::do_eval(Context&, bool) const                            { return intrusive(new ScriptDelayedError(error)); }
-ScriptValueP ScriptDelayedError::dependencies(Context&, const Dependency&) const          { return intrusive(new ScriptDelayedError(error)); }
-ScriptValueP ScriptDelayedError::makeIterator(const ScriptValueP& thisP) const            { return thisP; }
+ScriptValueP ScriptDelayedError::getMember(const String&) const                           { return intrusive_from_this(const_cast<ScriptDelayedError*>(this)); }
+ScriptValueP ScriptDelayedError::dependencyMember(const String&, const Dependency&) const { return intrusive_from_this(const_cast<ScriptDelayedError*>(this)); }
+ScriptValueP ScriptDelayedError::do_eval(Context&, bool) const                            { return intrusive_from_this(const_cast<ScriptDelayedError*>(this)); }
+ScriptValueP ScriptDelayedError::dependencies(Context&, const Dependency&) const          { return intrusive_from_this(const_cast<ScriptDelayedError*>(this)); }
+ScriptValueP ScriptDelayedError::makeIterator() const                                     { return intrusive_from_this(const_cast<ScriptDelayedError*>(this)); }
 
 
 // ----------------------------------------------------------------------------- : Iterators
@@ -123,7 +123,7 @@ ScriptValueP ScriptDelayedError::makeIterator(const ScriptValueP& thisP) const  
 ScriptType ScriptIterator::type() const { return SCRIPT_ITERATOR; }
 String ScriptIterator::typeName() const { return _("iterator"); }
 CompareWhat ScriptIterator::compareAs(String&, void const*&) const { return COMPARE_NO; }
-ScriptValueP ScriptIterator::makeIterator(const ScriptValueP& thisP) const { return thisP; }
+ScriptValueP ScriptIterator::makeIterator() const { return intrusive_from_this(const_cast<ScriptIterator*>(this)); }
 
 // Iterator over a range of integers
 class ScriptRangeIterator : public ScriptIterator {
@@ -131,12 +131,12 @@ class ScriptRangeIterator : public ScriptIterator {
 	// Construct a range iterator with the given bounds (inclusive)
 	ScriptRangeIterator(int start, int end)
 		: pos(start), start(start), end(end) {}
-	virtual ScriptValueP next(ScriptValueP* key_out) {
+	virtual ScriptValueP_nullable next(ScriptValueP* key_out) {
 		if (pos <= end) {
 			if (key_out) *key_out = to_script(pos-start);
 			return to_script(pos++);
 		} else {
-			return ScriptValueP();
+			return ScriptValueP_nullable();
 		}
 	}
   private:
@@ -149,7 +149,7 @@ ScriptValueP rangeIterator(int start, int end) {
 
 // ----------------------------------------------------------------------------- : Integers
 
-#define USE_POOL_ALLOCATOR
+#define USE_POOL_ALLOCATOR 1
 
 // Integer values
 class ScriptInt : public ScriptValue {
@@ -170,25 +170,9 @@ class ScriptInt : public ScriptValue {
 	int value;
 };
 
-#if defined(USE_POOL_ALLOCATOR) && !defined(USE_INTRUSIVE_PTR)
-	// deallocation function for pool allocated integers
-	void destroy_value(ScriptInt* v) {
-		boost::singleton_pool<ScriptValue, sizeof(ScriptInt)>::free(v);
-	}
-#endif
-
 ScriptValueP to_script(int v) {
 #ifdef USE_POOL_ALLOCATOR
-	#ifdef USE_INTRUSIVE_PTR
-		return ScriptValueP(
-				new(boost::singleton_pool<ScriptValue, sizeof(ScriptInt)>::malloc())
-					ScriptInt(v));
-	#else
-		return ScriptValueP(
-				new(boost::singleton_pool<ScriptValue, sizeof(ScriptInt)>::malloc())
-					ScriptInt(v),
-				destroy_value); // deallocation function
-	#endif
+	return intrusive(new(boost::singleton_pool<ScriptValue, sizeof(ScriptInt)>::malloc()) ScriptInt(v));
 #else
 	return intrusive(new ScriptInt(v));
 #endif
@@ -213,8 +197,8 @@ class ScriptBool : public ScriptValue {
 /* NOTE: previous versions used ScriptInts as booleans, this gives problems
  * when we use a pool allocator for them, because the pool is destroyed before these globals.
  */
-ScriptValueP script_true (new ScriptBool(true));
-ScriptValueP script_false(new ScriptBool(false));
+ScriptValueP script_true  = intrusive(new ScriptBool(true));
+ScriptValueP script_false = intrusive(new ScriptBool(false));
 
 
 // ----------------------------------------------------------------------------- : Doubles
@@ -284,7 +268,7 @@ class ScriptString : public ScriptValue {
 		}
 		return date;
 	}
-	virtual GeneratedImageP toImage(const ScriptValueP&) const {
+	virtual GeneratedImageP toImage() const {
 		if (value.empty()) {
 			return intrusive(new BlankImage());
 		} else {
@@ -367,7 +351,7 @@ class ScriptNil : public ScriptValue {
 	virtual double toDouble() const { return 0.0; }
 	virtual int    toInt()    const { return 0; }
 	virtual bool   toBool()   const { return false; }
-	virtual GeneratedImageP toImage(const ScriptValueP&) const {
+	virtual GeneratedImageP toImage() const {
 		return intrusive(new BlankImage());
 	}
 
@@ -379,21 +363,15 @@ class ScriptNil : public ScriptValue {
 };
 
 /// The preallocated nil value
-ScriptValueP script_nil(new ScriptNil);
+ScriptValueP script_nil = intrusive(new ScriptNil);
 
 // ----------------------------------------------------------------------------- : Collection base
 
 String ScriptCollectionBase::toCode() const {
 	String ret = _("[");
 	bool first = true;
-	#ifdef USE_INTRUSIVE_PTR
-		// we can just turn this into a ScriptValueP
-		// TODO: remove thisP alltogether
-		ScriptValueP it = makeIterator(ScriptValueP(const_cast<ScriptValue*>(static_cast<const ScriptValue*>(this))));
-	#else
-		#error "makeIterator needs a ScriptValueP :("
-	#endif
-	while (ScriptValueP v = it->next()) {
+	ScriptValueP it = makeIterator();
+	while (ScriptValueP_nullable v = it->next()) {
 		if (!first) ret += _(",");
 		first = false;
 		// todo: include keys
@@ -410,7 +388,7 @@ class ScriptCustomCollectionIterator : public ScriptIterator {
   public:	
 	ScriptCustomCollectionIterator(ScriptCustomCollectionP col)
 		: col(col), pos(0), it(col->key_value.begin()) {}
-	virtual ScriptValueP next(ScriptValueP* key_out) {
+	virtual ScriptValueP_nullable next(ScriptValueP* key_out) {
 		if (pos < col->value.size()) {
 			if (key_out) *key_out = to_script((int)pos);
 			return col->value.at(pos++);
@@ -418,7 +396,7 @@ class ScriptCustomCollectionIterator : public ScriptIterator {
 			if (key_out) *key_out = to_script(it->first);
 			return (it++)->second;
 		} else {
-			return ScriptValueP();
+			return ScriptValueP_nullable();
 		}
 	}
   private:
@@ -442,10 +420,8 @@ ScriptValueP ScriptCustomCollection::getIndex(int index) const {
 		return ScriptValue::getIndex(index);
 	}
 }
-ScriptValueP ScriptCustomCollection::makeIterator(const ScriptValueP& thisP) const {
-	return intrusive(new ScriptCustomCollectionIterator(
-	           static_pointer_cast<ScriptCustomCollection>(thisP)
-	       ));
+ScriptValueP ScriptCustomCollection::makeIterator() const {
+	return intrusive(new ScriptCustomCollectionIterator(intrusive_from_this(const_cast<ScriptCustomCollection*>(this))));
 }
 
 // ----------------------------------------------------------------------------- : Concat collection
@@ -455,17 +431,18 @@ class ScriptConcatCollectionIterator : public ScriptIterator {
   public:	
 	ScriptConcatCollectionIterator(const ScriptValueP& itA, const ScriptValueP& itB)
 		: itA(itA), itB(itB) {}
-	virtual ScriptValueP next(ScriptValueP* key_out) {
+	virtual ScriptValueP_nullable next(ScriptValueP* key_out) {
 		if (itA) {
-			ScriptValueP v = itA->next(key_out);
+			ScriptValueP_nullable v = itA->next(key_out);
 			if (v) return v;
-			else   itA = ScriptValueP();
+			else   itA = ScriptValueP_nullable();
 		}
 		// TODO: somehow fix up the keys
 		return itB->next(key_out);
 	}
   private:
-	ScriptValueP itA, itB;
+	ScriptValueP_nullable itA;
+	ScriptValueP itB;
 };
 
 ScriptValueP ScriptConcatCollection::getMember(const String& name) const {
@@ -488,8 +465,8 @@ ScriptValueP ScriptConcatCollection::getIndex(int index) const {
 		return b->getIndex(index - itemsInA);
 	}
 }
-ScriptValueP ScriptConcatCollection::makeIterator(const ScriptValueP& thisP) const {
-	return intrusive(new ScriptConcatCollectionIterator(a->makeIterator(a), b->makeIterator(b)));
+ScriptValueP ScriptConcatCollection::makeIterator() const {
+	return intrusive(new ScriptConcatCollectionIterator(a->makeIterator(), b->makeIterator()));
 }
 
 // ----------------------------------------------------------------------------- : Default arguments / closure
@@ -504,14 +481,14 @@ String ScriptClosure::typeName() const {
 void ScriptClosure::addBinding(Variable v, const ScriptValueP& value) {
 	bindings.push_back(make_pair(v,value));
 }
-ScriptValueP ScriptClosure::getBinding(Variable v) const {
+ScriptValueP_nullable ScriptClosure::getBinding(Variable v) const {
 	FOR_EACH_CONST(b, bindings) {
 		if (b.first == v) return b.second;
 	}
-	return ScriptValueP();
+	return ScriptValueP_nullable();
 }
 
-ScriptValueP ScriptClosure::simplify() {
+ScriptValueP_nullable ScriptClosure::simplify() {
 	return fun->simplifyClosure(*this);
 }
 

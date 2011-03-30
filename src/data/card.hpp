@@ -41,7 +41,7 @@ class Card : public IntrusivePtrVirtualBase {
 	wxDateTime time_created, time_modified;
 	/// Alternative style to use for this card
 	/** Optional; if not set use the card style from the set */
-	StyleSheetP stylesheet;
+	StyleSheetP_nullable stylesheet;
 	/// Alternative options to use for this card, for this card's stylesheet
 	/** Optional; if not set use the styling data from the set.
 	 *  If stylesheet is set then contains data for the this->stylesheet, otherwise for set->stylesheet

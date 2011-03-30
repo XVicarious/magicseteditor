@@ -89,7 +89,7 @@ SCRIPT_FUNCTION_WITH_DEP(combined_editor) {
 			changed |= v->update(ctx);
 			v->last_update = new_value_update;
 			if (changed) { // notify of change
-				SCRIPT_OPTIONAL_PARAM_(CardP, card);
+				SCRIPT_OPTIONAL_PARAM_(CardP_nullable, card);
 				SCRIPT_PARAM(Set*, set);
 				ScriptValueEvent change(card.get(), v);
 				set->actions.tellListeners(change, false);
@@ -161,7 +161,7 @@ SCRIPT_FUNCTION_DEPENDENCIES(combined_editor) {
 	// Find the target field
 	SCRIPT_PARAM_C(Set*, set);
 	GameP game = set->game;
-	FieldP target_field;
+	FieldP target_field = null_for_guaranteed_assignment<Field>();
 	if      (dep.type == DEP_CARD_FIELD) target_field = game->card_fields[dep.index];
 	else if (dep.type == DEP_SET_FIELD)  target_field = game->set_fields[dep.index];
 	else if (dep.type == DEP_EXTRA_CARD_FIELD) {
@@ -200,7 +200,7 @@ SCRIPT_FUNCTION_DEPENDENCIES(combined_editor) {
 // convert a full choice name into the name of the top level group it is in
 SCRIPT_FUNCTION(primary_choice) {
 	SCRIPT_PARAM_C(ValueP,input);
-	ChoiceValueP value = dynamic_pointer_cast<ChoiceValue>(input);
+	ChoiceValueP_nullable value = dynamic_pointer_cast<ChoiceValue>(input);
 	if (!value) {
 		throw ScriptError(_("Argument to 'primary_choice' should be a choice value")); 
 	}

@@ -29,11 +29,11 @@ class FilterCtrl : public wxControl {
 	String const& getFilterString() const { return value; }
 	
 	template <typename T>
-	intrusive_ptr<Filter<T> > getFilter() const {
+	intrusive_ptr_non_null<Filter<T> > getFilter() const {
 		if (hasFilter()) {
 			return intrusive(new QuickFilter<T>(getFilterString()));
 		} else {
-			return intrusive_ptr<Filter<T> >();
+			return no_filter<T>();
 		}
 	}
 	

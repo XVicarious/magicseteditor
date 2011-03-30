@@ -26,7 +26,7 @@ class FilterCtrl;
 /// A card list and card editor panel
 class CardsPanel : public SetWindowPanel {
   public:
-	CardsPanel(Window* parent, int id);
+	CardsPanel(Window* parent, int id, const SetP& set);
 	~CardsPanel();
 	
 	virtual void onChangeSet();
@@ -68,8 +68,8 @@ class CardsPanel : public SetWindowPanel {
   public:
 	
 	// --------------------------------------------------- : Selection
-	virtual CardP selectedCard() const;
-	virtual void selectCard(const CardP& card);
+	virtual CardP_nullable selectedCard() const;
+	virtual void selectCard(const CardP_nullable& card);
 	virtual void selectFirstCard();
 	
   private:

@@ -23,11 +23,11 @@ SpellChecker& SpellChecker::get(const String& language) {
 		String aff_path = language + _(".aff");
 		String dic_path = language + _(".dic");
 		if (wxFileExists(local_dir + aff_path) && wxFileExists(local_dir + dic_path)) {
-			speller = SpellCheckerP(new SpellChecker((local_dir + aff_path).mb_str(),
-			                                         (local_dir + dic_path).mb_str()));
+			speller = intrusive(new SpellChecker((local_dir + aff_path).mb_str(),
+			                                     (local_dir + dic_path).mb_str()));
 		} else if (wxFileExists(global_dir + aff_path) && wxFileExists(global_dir + dic_path)) {
-			speller = SpellCheckerP(new SpellChecker((global_dir + aff_path).mb_str(),
-			                                         (global_dir + dic_path).mb_str()));
+			speller = intrusive(new SpellChecker((global_dir + aff_path).mb_str(),
+			                                     (global_dir + dic_path).mb_str()));
 		} else {
 			throw Error(_("Dictionary not found for language: ") + language);
 		}
@@ -45,14 +45,14 @@ SpellChecker& SpellChecker::get(const String& filename, const String& language) 
 		String aff_path = language + _(".aff");
 		String dic_path = language + _(".dic");
 		if (wxFileExists(prefix + aff_path) && wxFileExists(prefix + dic_path)) {
-			speller = SpellCheckerP(new SpellChecker((prefix + aff_path).mb_str(),
-			                                         (prefix + dic_path).mb_str()));
+			speller = intrusive(new SpellChecker((prefix + aff_path).mb_str(),
+			                                     (prefix + dic_path).mb_str()));
 		} else if (wxFileExists(local_dir + aff_path) && wxFileExists(prefix + dic_path)) {
-			speller = SpellCheckerP(new SpellChecker((local_dir + aff_path).mb_str(),
-			                                         (prefix + dic_path).mb_str()));
+			speller = intrusive(new SpellChecker((local_dir + aff_path).mb_str(),
+			                                     (prefix + dic_path).mb_str()));
 		} else if (wxFileExists(global_dir + aff_path) && wxFileExists(prefix + dic_path)) {
-			speller = SpellCheckerP(new SpellChecker((global_dir + aff_path).mb_str(),
-			                                         (prefix + dic_path).mb_str()));
+			speller = intrusive(new SpellChecker((global_dir + aff_path).mb_str(),
+			                                     (prefix + dic_path).mb_str()));
 		} else {
 			throw Error(_("Dictionary '") + filename + _("' not found for language: ") + language);
 		}

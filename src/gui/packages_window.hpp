@@ -32,7 +32,7 @@ class PackagesWindow : public wxDialog {
 	
 	/// List of the packages shown in this window
 	InstallablePackages installable_packages;
-	InstallablePackageP package; ///< Selected package
+	InstallablePackageP_nullable package; ///< Selected package
 	PackageAction       where;   ///< Where to install? (PACKAGE_LOCAL or PACKAGE_GLOBAL)
 	
 	bool waiting_for_list; ///< waiting for the list of installers?

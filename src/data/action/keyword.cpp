@@ -67,12 +67,12 @@ void KeywordReminderTextValue::store() {
 	String new_value = untag(value);
 	// Try to parse the script
 	vector<ScriptParseError> parse_errors;
-	ScriptP new_script = parse(new_value, nullptr, true, parse_errors);
-	if (parse_errors.empty()) {
+	ScriptP_nullable new_script = parse(new_value, nullptr, true, parse_errors);
+	if (parse_errors.empty() && new_script) {
 		// parsed okay
-		if (checkScript(new_script)) {
+		if (checkScript(from_non_null(new_script))) {
 			// also runs okay, assign
-			keyword.reminder.setScriptP(new_script);
+			keyword.reminder.setScriptP(from_non_null(new_script));
 			keyword.reminder.setUnparsed(new_value);
 		}
 	} else {

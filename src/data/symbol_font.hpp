@@ -87,7 +87,7 @@ class SymbolFont : public Packaged {
 	RealSize spacing;	///< Spacing between sybmols (for the default font size)
 	// writing text
 	bool scale_text;	///< Should text be scaled down to fit in a symbol?
-	InsertSymbolMenuP insert_symbol_menu;
+	InsertSymbolMenuP_nullable insert_symbol_menu;
 	wxMenu* processed_insert_symbol_menu;
 	
 	friend class SymbolInFont;
@@ -158,7 +158,7 @@ class SymbolFontRef {
 	Scriptable<double>    size;				///< Size of the font
 	double                scale_down_to;	///< Mimumum size of the font
 	Scriptable<Alignment> alignment;		///< Alignment of symbols in a line of text
-	SymbolFontP           font;				///< The font, if it is loaded
+	SymbolFontP_nullable  font;				///< The font, if it is loaded
 	
   private:
 	DECLARE_REFLECTION();

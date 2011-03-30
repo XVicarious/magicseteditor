@@ -62,17 +62,14 @@ class ScriptableImage {
 	ScriptP getValidScriptP();
 	
   protected:
-	OptionalScript  script;		///< The script, not really optional
-	GeneratedImageP value;		///< The image generator
+	OptionalScript  script; ///< The script, not really optional
+	GeneratedImageP_nullable value; ///< The image generator
 	
 	DECLARE_REFLECTION();
 };
 
 /// Missing for now
 inline ScriptValueP to_script(const ScriptableImage&) { return script_nil; }
-
-/// Convert a script value to a GeneratedImageP
-GeneratedImageP image_from_script(const ScriptValueP& value);
 
 // ----------------------------------------------------------------------------- : CachedScriptableImage
 

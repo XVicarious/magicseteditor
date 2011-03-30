@@ -18,7 +18,7 @@ class SetInfoEditor;
 
 class SetInfoPanel : public SetWindowPanel {
   public:
-	SetInfoPanel(Window* parent, int id);
+	SetInfoPanel(Window* parent, int id, SetP const& set);
 	
 	// --------------------------------------------------- : UI
 	

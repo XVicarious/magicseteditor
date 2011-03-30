@@ -46,10 +46,10 @@
 
 /// Macro to declare a new script function with custom closure simplification
 #define SCRIPT_FUNCTION_WITH_SIMPLIFY(name)								\
-		SCRIPT_FUNCTION_AUX(name, virtual ScriptValueP simplifyClosure(ScriptClosure&) const;)
+		SCRIPT_FUNCTION_AUX(name, virtual ScriptValueP_nullable simplifyClosure(ScriptClosure&) const;)
 
 #define SCRIPT_FUNCTION_SIMPLIFY_CLOSURE(name)							\
-		ScriptValueP ScriptBuiltIn_##name::simplifyClosure(ScriptClosure& closure) const
+		ScriptValueP_nullable ScriptBuiltIn_##name::simplifyClosure(ScriptClosure& closure) const
 
 // helper for SCRIPT_FUNCTION and SCRIPT_FUNCTION_DEP
 #define SCRIPT_FUNCTION_AUX(name,dep)									\
@@ -61,7 +61,7 @@
 				{ return _("built-in function '") _(#name) _("'"); }	\
 			virtual ScriptValueP do_eval(Context&, bool) const;			\
 		};																\
-		ScriptValueP script_##name(new ScriptBuiltIn_##name);			\
+		ScriptValueP script_##name = intrusive(new ScriptBuiltIn_##name); \
 		ScriptValueP ScriptBuiltIn_##name::do_eval(Context& ctx, bool) const
 
 /// Return a value from a SCRIPT_FUNCTION
@@ -116,34 +116,33 @@ inline Type from_script(const ScriptValueP& v, Variable var) {
  *   }
  *  @endcode
  */
-#define SCRIPT_OPTIONAL_PARAM(Type, name)									\
+#define SCRIPT_OPTIONAL_PARAM(Type, name) \
 		SCRIPT_OPTIONAL_PARAM_N(Type, _(#name), name)
 /// Retrieve a named optional parameter
-#define SCRIPT_OPTIONAL_PARAM_N(Type, str, name)							\
-		SCRIPT_OPTIONAL_PARAM_N_(Type, str, name)							\
+#define SCRIPT_OPTIONAL_PARAM_N(Type, str, name) \
+		SCRIPT_OPTIONAL_PARAM_N_(Type, str, name) \
 		if (name##_)
-#define SCRIPT_OPTIONAL_PARAM_C(Type, name)									\
+#define SCRIPT_OPTIONAL_PARAM_C(Type, name) \
 		SCRIPT_OPTIONAL_PARAM_N(Type, SCRIPT_VAR_ ## name, name)
 
 /// Retrieve an optional parameter, can't be used as an if statement
-#define SCRIPT_OPTIONAL_PARAM_(Type, name)									\
+#define SCRIPT_OPTIONAL_PARAM_(Type, name) \
 		SCRIPT_OPTIONAL_PARAM_N_(Type, _(#name), name)
 /// Retrieve a named optional parameter, can't be used as an if statement
-#define SCRIPT_OPTIONAL_PARAM_N_(Type, str, name)							\
-		ScriptValueP name##_ = ctx.getVariableOpt(str);						\
-		Type name = name##_ && name##_ != script_nil						\
-						? from_script<Type>(name##_, str) : Type();
-#define SCRIPT_OPTIONAL_PARAM_C_(Type, name)									\
+#define SCRIPT_OPTIONAL_PARAM_N_(Type, str, name) \
+		ScriptValueP_nullable name##_ = ctx.getVariableOpt(str); \
+		Type name = name##_ && name##_ != script_nil ? from_script<Type>(from_non_null(name##_), str) : Type();
+#define SCRIPT_OPTIONAL_PARAM_C_(Type, name) \
 		SCRIPT_OPTIONAL_PARAM_N_(Type, SCRIPT_VAR_ ## name, name)
 
 /// Retrieve an optional parameter with a default value
-#define SCRIPT_PARAM_DEFAULT(Type, name, def)								\
+#define SCRIPT_PARAM_DEFAULT(Type, name, def) \
 		SCRIPT_PARAM_DEFAULT_N(Type, _(#name), name, def)
 /// Retrieve a named optional parameter with a default value
-#define SCRIPT_PARAM_DEFAULT_N(Type, str, name, def)						\
-		ScriptValueP name##_ = ctx.getVariableOpt(str);						\
-		Type name = name##_ ? from_script<Type>(name##_, str) : def
-#define SCRIPT_PARAM_DEFAULT_C(Type, name, def)								\
+#define SCRIPT_PARAM_DEFAULT_N(Type, str, name, def) \
+		ScriptValueP_nullable name##_ = ctx.getVariableOpt(str); \
+		Type name = name##_ ? from_script<Type>(from_non_null(name##_), str) : def
+#define SCRIPT_PARAM_DEFAULT_C(Type, name, def) \
 		SCRIPT_PARAM_DEFAULT_N(Type, SCRIPT_VAR_ ## name, name, def)
 
 // ----------------------------------------------------------------------------- : Rules

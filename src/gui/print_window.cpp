@@ -163,7 +163,7 @@ void CardsPrintout::drawCard(DC& dc, const CardP& card, int card_nr) {
 
 // ----------------------------------------------------------------------------- : PrintWindow
 
-PrintJobP make_print_job(Window* parent, const SetP& set, const ExportCardSelectionChoices& choices) {
+PrintJobP_nullable make_print_job(Window* parent, const SetP& set, const ExportCardSelectionChoices& choices) {
 	// Let the user choose cards
 	// controls
 	ExportWindowBase wnd(parent, _TITLE_("select cards"), set, choices);
@@ -184,7 +184,7 @@ PrintJobP make_print_job(Window* parent, const SetP& set, const ExportCardSelect
 	wnd.SetMinSize(wxSize(300,-1));
 	// show window
 	if (wnd.ShowModal() != wxID_OK) {
-		return PrintJobP(); // cancel
+		return PrintJobP_nullable(); // cancel
 	} else {
 		// make print job
 		PrintJobP job = intrusive(new PrintJob(set));
@@ -208,7 +208,7 @@ void print_preview(Window* parent, const PrintJobP& job) {
 }
 
 void print_set(Window* parent, const PrintJobP& job) {
-	if (!job) return;
+	assert(job);
 	// Print the cards
 	wxPrinter p;
 	CardsPrintout pout(job);
@@ -216,8 +216,10 @@ void print_set(Window* parent, const PrintJobP& job) {
 }
 
 void print_preview(Window* parent, const SetP& set, const ExportCardSelectionChoices& choices) {
-	print_preview(parent, make_print_job(parent, set, choices));
+	PrintJobP_nullable job = make_print_job(parent, set, choices);
+	if (job) print_preview(parent, from_non_null(job));
 }
 void print_set(Window* parent, const SetP& set, const ExportCardSelectionChoices& choices) {
-	print_set(parent, make_print_job(parent, set, choices));
+	PrintJobP_nullable job = make_print_job(parent, set, choices);
+	if (job) print_set(parent, from_non_null(job));
 }

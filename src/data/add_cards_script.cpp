@@ -28,9 +28,9 @@ void AddCardsScript::perform(Set& set, vector<CardP>& out) {
 	Context& ctx = set.getContext();
 	ScriptValueP result = script.invoke(ctx);
 	// Add cards to out
-	ScriptValueP it = result->makeIterator(result);
-	while (ScriptValueP item = it->next()) {
-		CardP card = from_script<CardP>(item);
+	ScriptValueP it = result->makeIterator();
+	while (ScriptValueP_nullable item = it->next()) {
+		CardP card = from_script<CardP>(from_non_null(item));
 		// is this a new card?
 		if (contains(set.cards,card) || contains(out,card)) {
 			// make copy

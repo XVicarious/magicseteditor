@@ -103,7 +103,7 @@ class SymbolPointEditor : public SymbolEditorBase {
 	//   handle
 	SelectedHandle     selected_handle;
 	//   line
-	ControlPointP      selected_line1, selected_line2; // selected the line between these points
+	ControlPointP_nullable selected_line1, selected_line2; // selected the line between these points
 	double             selected_line_t;                // time on the line of the selection
 	
 	// Mouse feedback
@@ -113,7 +113,7 @@ class SymbolPointEditor : public SymbolEditorBase {
 	//   new point
 	Vector2D       new_point;
 	//   line
-	ControlPointP  hover_line_1, hover_line_2; // hovering on the line between these points
+	ControlPointP_nullable hover_line_1, hover_line_2; // hovering on the line between these points
 	double         hover_line_t;
 	int            hover_line_1_idx; // index of hover_line_1 in the list of points
 	

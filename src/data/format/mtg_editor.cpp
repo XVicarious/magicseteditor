@@ -57,10 +57,11 @@ SetP MtgEditorFileFormat::importSet(const String& filename) {
 		wxTextInputStream file(f);
 	#endif
 	// create set
-	SetP set(new Set(Game::byName(_("magic"))));
+	SetP set = intrusive(new Set);
+	set->game = Game::byName(_("magic"));
 	
 	// parsing state
-	CardP current_card;
+	CardP current_card = null_for_guaranteed_assignment<Card>();
 	Defaultable<String>* target = nullptr; // value we are currently reading
 	String layout = _("8e");
 	String set_date, card_date;

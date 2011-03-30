@@ -82,8 +82,8 @@ class ControlPoint : public IntrusivePtrBase<ControlPoint> {
 /// A specific handle of a ControlPoint
 class SelectedHandle {
   public:
-	ControlPointP point;  ///< the selected point
-	WhichHandle   handle; ///< the selected handle of the point
+	ControlPointP_nullable point;  ///< the selected point, is only null if handle==HANDLE_NONE
+	WhichHandle            handle; ///< the selected handle of the point
 	
 	// SelectedHandle
 	SelectedHandle()                                                      : handle(HANDLE_NONE) {}
@@ -301,7 +301,7 @@ SymbolP default_symbol();
  */
 class SymbolView : public ActionListener {
   public:
-	SymbolView();
+	SymbolView(SymbolP const& symbol);
 	~SymbolView();
   
 	/// Get the symbol that is currently being viewed

@@ -107,10 +107,11 @@ void StatCategoryList::drawItem(DC& dc, int x, int y, size_t item) {
 /// A list of fields of which the statistics can be shown
 class StatDimensionList : public GalleryList {
   public:
-	StatDimensionList(Window* parent, int id, bool show_empty, int dimension_count = 3)
+	StatDimensionList(Window* parent, int id, const GameP& game, bool show_empty, int dimension_count = 3)
 		: GalleryList(parent, id, wxVERTICAL, false)
 		, dimension_count(dimension_count)
 		, prefered_dimension_count(dimension_count)
+		, game(game)
 		, show_empty(show_empty)
 	{
 		//item_size = wxSize(150, 23);
@@ -136,10 +137,10 @@ class StatDimensionList : public GalleryList {
 	
 	void show(const GameP&);
 	
-	/// The selected category
-	StatsDimensionP getSelection(size_t subcol=(size_t)-1) {
+	/// The selected category (if any)
+	StatsDimensionP_nullable getSelection(size_t subcol=(size_t)-1) {
 		size_t sel = subcolumns[subcol+1].selection - show_empty;
-		if (sel >= itemCount()) return StatsDimensionP();
+		if (sel >= itemCount()) return StatsDimensionP_nullable();
 		else                    return dimensions.at(sel);
 	}
 	
@@ -277,8 +278,8 @@ void StatDimensionList::drawItem(DC& dc, int x, int y, size_t item) {
 #endif
 // ----------------------------------------------------------------------------- : StatsPanel
 
-StatsPanel::StatsPanel(Window* parent, int id)
-	: SetWindowPanel(parent, id)
+StatsPanel::StatsPanel(Window* parent, int id, SetP const& set)
+	: SetWindowPanel(parent, id, set)
 	, menuGraph(nullptr)
 	, up_to_date(true), active(false)
 {
@@ -293,13 +294,13 @@ void StatsPanel::initControls() {
 			dimensions[i] = new StatDimensionList(this, ID_FIELD_LIST, i > 0);
 		}
 	#elif USE_DIMENSION_LISTS
-		dimensions = new StatDimensionList(this, ID_FIELD_LIST, false, 3);
+		dimensions = new StatDimensionList(this, ID_FIELD_LIST, set->game, false, 3);
 	#else
 		categories = new StatCategoryList(this, ID_FIELD_LIST);
 	#endif
 	splitter   = new wxSplitterWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
 	graph      = new GraphControl    (splitter, wxID_ANY);
-	card_list  = new FilteredCardList(splitter, wxID_ANY);
+	card_list  = new FilteredCardList(splitter, wxID_ANY, set);
 	// init splitter
 	splitter->SetMinimumPaneSize(100);
 	splitter->SetSashGravity(0.6);
@@ -344,7 +345,7 @@ void StatsPanel::onChangeSet() {
 	#else
 		categories->show(set->game);
 	#endif
-	card = CardP();
+	card = CardP_nullable();
 	onChange();
 }
 
@@ -357,12 +358,12 @@ void StatsPanel::onAction(const Action& action, bool undone) {
 	}
 }
 
-void StatsPanel::initUI   (wxToolBar* tb, wxMenuBar* mb) {
+void StatsPanel::initUI(wxToolBar* tb, wxMenuBar* mb) {
 	// Controls
 	if (!isInitialized()) {
 		wxBusyCursor busy;
 		initControls();
-		CardP cur_card = card;
+		CardP_nullable cur_card = card;
 		onChangeSet();
 		selectCard(cur_card);
 	}
@@ -447,8 +448,8 @@ void StatsPanel::showCategory(const GraphType* prefer_layout) {
 			}
 		#else // USE_DIMENSION_LISTS
 			for (size_t i = 0 ; i < dimensions->prefered_dimension_count ; ++i) {
-				StatsDimensionP dim = dimensions->getSelection(i);
-				if (dim) dims.push_back(dim);
+				StatsDimensionP_nullable dim = dimensions->getSelection(i);
+				if (dim) dims.push_back(from_non_null(dim));
 			}
 		#endif
 		// layout
@@ -485,7 +486,7 @@ void StatsPanel::showCategory(const GraphType* prefer_layout) {
 	// find values for each card
 	for (size_t i = 0 ; i < set->cards.size() ; ++i) {
 		Context& ctx = set->getContext(set->cards[i]);
-		GraphElementP e(new GraphElement(i));
+		GraphElementP e = intrusive(new GraphElement(i));
 		bool show = true;
 		FOR_EACH(dim, dims) {
 			String value = untag(dim->script.invoke(ctx)->toString());
@@ -507,8 +508,7 @@ void StatsPanel::showCategory(const GraphType* prefer_layout) {
 		++dim_id;
 	}
 	// update graph and card list
-	graph->setLayout(layout, true);
-	graph->setData(d);
+	graph->setLayout(layout, intrusive(new GraphData(d)));
 	filterCards();
 }
 void StatsPanel::showLayout(GraphType layout) {
@@ -545,7 +545,10 @@ class StatsFilter : public Filter<Card> {
 };
 
 void StatsPanel::filterCards() {
-	intrusive_ptr<StatsFilter> filter(new StatsFilter(*graph->getData(), graph->getSelectionIndices()));
+	GraphDataP_nullable data = graph->getData();
+	assert(data);
+	if (!data) return;
+	intrusive_ptr_non_null<StatsFilter> filter = intrusive(new StatsFilter(*data, graph->getSelectionIndices()));
 	card_list->setFilter(filter);
 }
 
@@ -557,11 +560,11 @@ END_EVENT_TABLE()
 
 // ----------------------------------------------------------------------------- : Selection
 
-CardP StatsPanel::selectedCard() const {
-	if (!isInitialized()) return CardP();
+CardP_nullable StatsPanel::selectedCard() const {
+	if (!isInitialized()) return CardP_nullable();
 	return card_list->getCard();
 }
-void StatsPanel::selectCard(const CardP& card) {
+void StatsPanel::selectCard(const CardP_nullable& card) {
 	this->card = card;
 	if (!isInitialized()) return;
 	card_list->setCard(card);

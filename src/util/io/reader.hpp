@@ -89,6 +89,9 @@ class Reader {
 	template <typename T> void handle(T&);
 	/// Reads a intrusive_ptr from the input stream
 	template <typename T> void handle(intrusive_ptr<T>&);
+	#if USE_NON_NULL_TYPE
+	template <typename T> void handle(intrusive_ptr_non_null<T>& x){ handle(static_cast<intrusive_ptr<T>&>(x)); }
+	#endif
 	/// Reads a map from the input stream
 	template <typename V> void handle(map<String,V>&);
 	/// Reads an IndexMap from the input stream, reads only keys that already exist in the map
@@ -102,6 +105,9 @@ class Reader {
 	// special behaviour
 	void handle(GameP&);
 	void handle(StyleSheetP&);
+	#if USE_NON_NULL_TYPE
+	void handle(StyleSheetP_nullable&);
+	#endif
 	
 	/// Indicate that the last value from getValue() was not handled, allowing it to be handled again
 	void unhandle();
@@ -192,7 +198,7 @@ class Reader {
  *  This function can be overloaded to provide different behaviour
  */
 template <typename T>
-intrusive_ptr<T> read_new(Reader& reader) {
+intrusive_ptr_non_null<T> read_new(Reader& reader) {
 	return intrusive(new T());
 }
 

@@ -87,7 +87,7 @@ class SymbolInFont : public IntrusivePtrBase<SymbolInFont> {
 	bool             regex;			///< Should this symbol be matched by a regex?
 	int              draw_text;		///< The index of the captured regex expression to draw, or -1 to not draw text
 	Regex            code_regex;	///< Regex for matching the symbol code
-	FontP            text_font;		///< Font to draw text in.
+	FontP_nullable   text_font;		///< Font to draw text in.
 	Alignment        text_alignment;
 	double           text_margin_left;
 	double           text_margin_right;
@@ -162,8 +162,9 @@ void SymbolInFont::update(Context& ctx) {
 		bitmaps.clear();
 	}
 	enabled.update(ctx);
-	if (text_font)
+	if (text_font) {
 		text_font->update(ctx);
+	}
 }
 void SymbolFont::update(Context& ctx) const {
 	// update all symbol-in-fonts
@@ -584,7 +585,7 @@ void SymbolFontRef::initDependencies(Context& ctx, const Dependency& dep) const 
 
 void SymbolFontRef::loadFont(Context& ctx) {
 	if (name().empty()) {
-		font = SymbolFontP();
+		font = SymbolFontP_nullable();
 	} else {
 		font = SymbolFont::byName(name);
 		if (starts_with(name(),_("/:NO-WARN-DEP:"))) {

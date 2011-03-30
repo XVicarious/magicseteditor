@@ -22,7 +22,7 @@ DECLARE_TYPEOF_COLLECTION(ScriptParseError);
 
 // ----------------------------------------------------------------------------- : Command line interface
 
-CLISetInterface::CLISetInterface(const SetP& set, bool quiet)
+CLISetInterface::CLISetInterface(const SetP_nullable& set, bool quiet)
 	: quiet(quiet)
 	, our_context(nullptr)
 {
@@ -53,17 +53,15 @@ Context& CLISetInterface::getContext() {
 	}
 }
 
-void CLISetInterface::onBeforeChangeSet() {
+void CLISetInterface::setSet(const SetP_nullable& new_set) {
 	if (set || our_context) {
 		Context& ctx = getContext();
 		ctx.closeScope(scope);
 	}
-}
-
-void CLISetInterface::onChangeSet() {
+	this->set = new_set;
 	Context& ctx = getContext();
 	scope = ctx.openScope();
-	ei.set = set;
+	ei.set = new_set;
 }
 
 void CLISetInterface::setExportInfoCwd() {
@@ -110,9 +108,9 @@ bool CLISetInterface::run_script(ScriptP const& script) {
 
 bool CLISetInterface::run_script_string(String const& command, bool multiline) {
 	vector<ScriptParseError> errors;
-	ScriptP script = parse(command,nullptr,false,errors);
-	if (errors.empty()) {
-		return run_script(script);
+	ScriptP_nullable script = parse(command,nullptr,false,errors);
+	if (errors.empty() && script) {
+		return run_script(from_non_null(script));
 	} else {
 		FOR_EACH(error,errors) {
 			if (multiline) {

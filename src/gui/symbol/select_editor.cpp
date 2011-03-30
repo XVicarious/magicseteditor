@@ -208,9 +208,9 @@ void SymbolSelectEditor::onLeftDown  (const Vector2D& pos, wxMouseEvent& ev) {
 		return; // don't change the selection
 	}
 	// Select the part under the cursor
-	SymbolPartP part = control.selected_parts.find(pos);
+	SymbolPartP_nullable part = control.selected_parts.find(pos);
 	if (part) {
-		click_mode = control.selected_parts.select(part, ev.ShiftDown() ? SELECT_TOGGLE : SELECT_IF_OUTSIDE)
+		click_mode = control.selected_parts.select(from_non_null(part), ev.ShiftDown() ? SELECT_TOGGLE : SELECT_IF_OUTSIDE)
 		           ? (ev.ShiftDown() ? CLICK_NONE : CLICK_MOVE)
 		           : CLICK_TOGGLE;
 	} else {
@@ -247,7 +247,7 @@ void SymbolSelectEditor::onLeftDClick(const Vector2D& pos, wxMouseEvent& ev) {
 	// start editing the points of the clicked part
 	highlightPart = control.selected_parts.find(pos);
 	if (highlightPart) {
-		control.activatePart(highlightPart);
+		control.activatePart(from_non_null(highlightPart));
 	}
 }
 
@@ -258,7 +258,7 @@ void SymbolSelectEditor::onMouseMove  (const Vector2D& from, const Vector2D& to,
 	int dx, dy;
 	if (!control.selected_parts.empty() && onAnyHandle(to, &dx, &dy)) {
 		// we are on a handle, don't highlight
-		highlightPart = SymbolPartP();
+		highlightPart = SymbolPartP_nullable();
 		String shapes = control.selected_parts.size() > 1 ? _TYPE_("shapes") : _TYPE_("shape");
 		if (rotate) {
 			// shear or rotating?
@@ -400,7 +400,7 @@ void SymbolSelectEditor::onChar(wxKeyEvent& ev) {
 	if (ev.GetKeyCode() == WXK_DELETE) {
 		// delete selected parts
 		addAction(new RemoveSymbolPartsAction(*getSymbol(), control.selected_parts.get()));
-		if (control.selected_parts.selected(highlightPart)) highlightPart = SymbolPartP(); // deleted it
+		if (control.selected_parts.selected(highlightPart)) highlightPart = SymbolPartP_nullable(); // deleted it
 		control.selected_parts.clear();
 		resetActions();
 		control.Refresh(false);

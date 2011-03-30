@@ -110,20 +110,23 @@ IMPLEMENT_REFLECTION_NO_GET_MEMBER(StatsCategory) {
 	}
 }
 
+StatsDimensionP_nullable find_dim(const vector<StatsDimensionP>& available, String const& name) {
+	FOR_EACH_CONST(dim, available) {
+		if (dim->name == name) {
+			return dim;
+		}
+	}
+	return StatsDimensionP_nullable();
+}
+
 void StatsCategory::find_dimensions(const vector<StatsDimensionP>& available) {
 	if (!dimensions.empty()) return;
 	FOR_EACH_CONST(n, dimension_names) {
-		StatsDimensionP dim;
-		FOR_EACH_CONST(d, available) {
-			if (d->name == n) {
-				dim = d;
-				break;
-			}
-		}
-		if (!dim) {
-			handle_error(_ERROR_1_("dimension not found",n));
+		StatsDimensionP_nullable dim = find_dim(available,n);
+		if (dim) {
+			dimensions.push_back(from_non_null(dim));
 		} else {
-			dimensions.push_back(dim);
+			handle_error(_ERROR_1_("dimension not found",n));
 		}
 	}
 }

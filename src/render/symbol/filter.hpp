@@ -14,6 +14,7 @@
 #include <gfx/color.hpp>
 
 DECLARE_POINTER_TYPE(Symbol);
+DECLARE_POINTER_TYPE(SymbolFilter);
 class SymbolFilter;
 
 // ----------------------------------------------------------------------------- : Symbol filtering
@@ -52,7 +53,7 @@ class SymbolFilter : public IntrusivePtrVirtualBase {
 };
 
 template <>
-intrusive_ptr<SymbolFilter> read_new<SymbolFilter>(Reader& reader);
+SymbolFilterP read_new<SymbolFilter>(Reader& reader);
 
 // ----------------------------------------------------------------------------- : SymbolFilter types
 

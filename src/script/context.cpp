@@ -96,9 +96,9 @@ ScriptValueP Context::eval(const Script& script, bool useScope) {
 				
 				// Get a variable
 				case I_GET_VAR: {
-					ScriptValueP value = variables[i.data].value;
+					ScriptValueP_nullable value = variables[i.data].value;
 					if (!value) throw ScriptErrorNoVariable(variable_to_string((Variable)i.data));
-					stack.push_back(value);
+					stack.push_back(from_non_null(value));
 					break;
 				}
 				// Set a variable
@@ -115,9 +115,9 @@ ScriptValueP Context::eval(const Script& script, bool useScope) {
 				// Loop over a container, push next value or jump
 				case I_LOOP: {
 					ScriptValueP& it = stack[stack.size() - 2]; // second element of stack
-					ScriptValueP val = it->next();
+					ScriptValueP_nullable val = it->next();
 					if (val) {
-						stack.push_back(val);
+						stack.push_back(from_non_null(val));
 					} else {
 						stack.erase(stack.end() - 2); // remove iterator
 						instr = &script.instructions[0] + i.data;
@@ -127,11 +127,11 @@ ScriptValueP Context::eval(const Script& script, bool useScope) {
 				// Loop over a container, push next key;next value or jump
 				case I_LOOP_WITH_KEY: {
 					ScriptValueP& it = stack[stack.size() - 2]; // second element of stack
-					ScriptValueP key;
-					ScriptValueP val = it->next(&key);
+					ScriptValueP key = null_for_guaranteed_assignment<ScriptValue>();
+					ScriptValueP_nullable val = it->next(&key);
 					if (val) {
-						stack.push_back(val);
-						stack.push_back(key);
+						stack.push_back(from_non_null(val));
+						stack.push_back(from_non_null(key));
 					} else {
 						stack.erase(stack.end() - 2); // remove iterator
 						instr = &script.instructions[0] + i.data;
@@ -280,21 +280,22 @@ void Context::setVariable(Variable name, const ScriptValueP& value) {
 }
 
 ScriptValueP Context::getVariable(const String& name) {
-	ScriptValueP value = variables[string_to_variable(name)].value;
+	ScriptValueP_nullable value = variables[string_to_variable(name)].value;
 	if (!value) throw ScriptErrorNoVariable(name);
-	return value;
+	return from_non_null(value);
 }
 
-ScriptValueP Context::getVariableOpt(const String& name) {
+ScriptValueP_nullable Context::getVariableOpt(const String& name) {
 	return variables[string_to_variable(name)].value;
 }
 ScriptValueP Context::getVariable(Variable var) {
-	if (variables[var].value) return variables[var].value;
-	throw ScriptErrorNoVariable(variable_to_string(var));
+	ScriptValueP_nullable value = variables[var].value;
+	if (!value) throw ScriptErrorNoVariable(variable_to_string(var));
+	return from_non_null(value);
 }
-ScriptValueP Context::getVariableInScopeOpt(Variable var) {
+ScriptValueP_nullable Context::getVariableInScopeOpt(Variable var) {
 	if (variables[var].level == level) return variables[var].value;
-	else                               return ScriptValueP();
+	else                               return ScriptValueP_nullable();
 }
 int Context::getVariableScope(Variable var) {
 	if (variables[var].value) return level - variables[var].level;
@@ -316,18 +317,18 @@ Variable Context::lookupVariableValue(const ScriptValueP& value) {
 }
 
 ScriptValueP Context::makeClosure(const ScriptValueP& fun) {
-	intrusive_ptr<ScriptClosure> closure(new ScriptClosure(fun));
+	intrusive_ptr_non_null<ScriptClosure> closure = intrusive(new ScriptClosure(fun));
 	// we can find out which variables are in the last level by looking at shadowed
 	// these variables will be at the end of the list
 	for (size_t i = shadowed.size() - 1 ; i + 1 > 0 ; --i) {
 		Variable var = shadowed[i].variable;
 		assert(variables[var].value);
 		if (variables[var].level < level) break;
-		closure->addBinding(var, variables[var].value);
+		closure->addBinding(var, from_non_null(variables[var].value));
 	}
 	// can we simplify?
-	ScriptValueP better = closure->simplify();
-	if (better) return better;
+	ScriptValueP_nullable better = closure->simplify();
+	if (better) return from_non_null(better);
 	else        return closure;
 }
 
@@ -359,10 +360,10 @@ void Context::closeScope(size_t scope) {
 
 // ----------------------------------------------------------------------------- : Simple instructions : unary
 
-void instrUnary  (UnaryInstructionType   i, ScriptValueP& a) {
+void instrUnary  (UnaryInstructionType i, ScriptValueP& a) {
 	switch (i) {
 		case I_ITERATOR_C:
-			a = a->makeIterator(a);
+			a = a->makeIterator();
 			break;
 		case I_NEGATE: {
 			ScriptType at = a->type();
@@ -564,7 +565,7 @@ void instrQuaternary(QuaternaryInstructionType i, ScriptValueP& a, const ScriptV
 // ----------------------------------------------------------------------------- : Simple instructions : objects and closures
 
 void Context::makeObject(size_t n) {
-	ScriptCustomCollectionP ret(new ScriptCustomCollection());
+	ScriptCustomCollectionP ret = intrusive(new ScriptCustomCollection());
 	size_t begin = stack.size() - 2 * n;
 	for (size_t i = 0 ; i < n ; ++i) {
 		const ScriptValueP& key = stack[begin + 2 * i];
@@ -580,7 +581,7 @@ void Context::makeObject(size_t n) {
 }
 
 void Context::makeClosure(size_t n, const Instruction*& instr) {
-	intrusive_ptr<ScriptClosure> closure(new ScriptClosure(stack[stack.size() - n - 1]));
+	ScriptClosureP closure = intrusive(new ScriptClosure(stack[stack.size() - n - 1]));
 	for (size_t j = 0 ; j < n ; ++j) {
 		closure->addBinding((Variable)instr[n - j - 1].data, stack.back());
 		stack.pop_back();
@@ -588,8 +589,6 @@ void Context::makeClosure(size_t n, const Instruction*& instr) {
 	// skip arguments
 	instr += n;
 	// set value, try to simplify
-	stack.back() = closure->simplify();
-	if (!stack.back()) {
-		stack.back() = closure;
-	}
+	ScriptValueP_nullable simple = closure->simplify();
+	stack.back() = simple ? from_non_null(simple) : closure;
 }

@@ -17,7 +17,7 @@
 
 // ----------------------------------------------------------------------------- : SymbolSymmetryEditor
 
-SymbolSymmetryEditor::SymbolSymmetryEditor(SymbolControl* control, const SymbolSymmetryP& sym)
+SymbolSymmetryEditor::SymbolSymmetryEditor(SymbolControl* control, const SymbolSymmetryP_nullable& sym)
 	: SymbolEditorBase(control)
 	, symmetry(control->selected_symmetry)
 	, symmetryMoveAction(nullptr)
@@ -118,7 +118,8 @@ void SymbolSymmetryEditor::onCommand(int id) {
 		}
 		resetActions();
 	} else if (id == ID_ADD_SYMMETRY) {
-		symmetry = intrusive(new SymbolSymmetry());
+		SymbolSymmetryP symmetry = intrusive(new SymbolSymmetry());
+		this->symmetry = symmetry;
 		symmetry->kind   = SYMMETRY_ROTATION;
 		symmetry->copies = 2;
 		symmetry->center = Vector2D(0.5,0.5);
@@ -129,7 +130,7 @@ void SymbolSymmetryEditor::onCommand(int id) {
 		control.Refresh(false);
 	} else if (id == ID_REMOVE_SYMMETRY) {
 		addAction(new UngroupSymbolPartsAction(*getSymbol(), control.selected_parts.get()));
-		symmetry = SymbolSymmetryP();
+		symmetry = SymbolSymmetryP_nullable();
 		control.Refresh(false);
 	}
 }

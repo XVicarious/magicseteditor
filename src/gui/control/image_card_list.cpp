@@ -19,8 +19,8 @@ DECLARE_TYPEOF_COLLECTION(FieldP);
 
 // ----------------------------------------------------------------------------- : ImageCardList
 
-ImageCardList::ImageCardList(Window* parent, int id, long additional_style)
-	: CardListBase(parent, id, additional_style)
+ImageCardList::ImageCardList(Window* parent, int id, SetP const& set, long additional_style)
+	: CardListBase(parent, id, set, additional_style)
 {}
 
 ImageCardList::~ImageCardList() {
@@ -40,12 +40,12 @@ void ImageCardList::onBeforeChangeSet() {
 	thumbnails.clear();
 }
 
-ImageFieldP ImageCardList::findImageField() {
+ImageFieldP_nullable ImageCardList::findImageField() {
 	FOR_EACH(f, set->game->card_fields) {
-		ImageFieldP imgf = dynamic_pointer_cast<ImageField>(f);
+		ImageFieldP_nullable imgf = dynamic_pointer_cast<ImageField>(f);
 		if (imgf) return imgf;
 	}
-	return ImageFieldP();
+	return ImageFieldP_nullable();
 }
 
 /// A request for a thumbnail of a card image
@@ -92,7 +92,7 @@ class CardThumbnailRequest : public ThumbnailRequest {
 int ImageCardList::OnGetItemImage(long pos) const {
 	if (image_field) {
 		// Image = thumbnail of first image field of card
-		ImageValue& val = static_cast<ImageValue&>(*getCard(pos)->data[image_field]);
+		ImageValue& val = static_cast<ImageValue&>(*getCard(pos)->data[from_non_null(image_field)]);
 		if (!val.filename) return -1; // no image
 		// is there already a thumbnail?
 		map<String,int>::const_iterator it = thumbnails.find(val.filename);
@@ -117,8 +117,9 @@ END_EVENT_TABLE  ()
 
 // ----------------------------------------------------------------------------- : FilteredImageCardList
 
-FilteredImageCardList::FilteredImageCardList(Window* parent, int id, long additional_style)
-	: ImageCardList(parent, id, additional_style)
+FilteredImageCardList::FilteredImageCardList(Window* parent, int id, SetP const& set, long additional_style)
+	: ImageCardList(parent, id, set, additional_style)
+	, filter(no_filter<Card>())
 {}
 
 void FilteredImageCardList::setFilter(const CardListFilterP& filter) {
@@ -128,7 +129,7 @@ void FilteredImageCardList::setFilter(const CardListFilterP& filter) {
 
 void FilteredImageCardList::onChangeSet() {
 	// clear filter before changing set, the filter might not make sense for a different set
-	filter = CardListFilterP();
+	filter = no_filter<Card>();
 	CardListBase::onChangeSet();
 }
 

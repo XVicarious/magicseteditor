@@ -29,8 +29,8 @@ int item_count(const T& v) {
 }
 /// Return an iterator for some collection, can be overloaded
 template <typename T>
-ScriptValueP make_iterator(const T& v) {
-	return ScriptValueP();
+ScriptValueP_nullable make_iterator(const T& v) {
+	return ScriptValueP_nullable();
 }
 
 /// Mark a dependency on a member of value, can be overloaded
@@ -59,6 +59,11 @@ template <typename T> inline String to_code(const T& v) {
 template <typename T> inline String to_code(const intrusive_ptr<T>& p) {
 	return type_name(*p.get());
 }
+#if USE_NON_NULL_TYPE
+template <typename T> inline String to_code(const intrusive_ptr_non_null<T>& p) {
+	return type_name(*p.get());
+}
+#endif
 
 // ----------------------------------------------------------------------------- : Errors
 
@@ -85,7 +90,7 @@ class ScriptDelayedError : public ScriptValue {
 	virtual ScriptValueP getMember(const String& name) const;
 	virtual ScriptValueP dependencyMember(const String& name, const Dependency&) const;
 	virtual ScriptValueP dependencies(Context&, const Dependency&) const;
-	virtual ScriptValueP makeIterator(const ScriptValueP& thisP) const;
+	virtual ScriptValueP makeIterator() const;
 
   protected:
 	virtual ScriptValueP do_eval(Context&, bool openScope) const;
@@ -110,8 +115,8 @@ struct ScriptIterator : public ScriptValue {
 	virtual CompareWhat compareAs(String&, void const*&) const; // { return COMPARE_NO; }
 
 	/// Return the next item for this iterator, or ScriptValueP() if there is no such item
-	virtual ScriptValueP next(ScriptValueP* key_out = nullptr) = 0;
-	virtual ScriptValueP makeIterator(const ScriptValueP& thisP) const;
+	virtual ScriptValueP_nullable next(ScriptValueP* key_out = nullptr) = 0;
+	virtual ScriptValueP makeIterator() const;
 };
 
 // make an iterator over a range
@@ -133,12 +138,12 @@ template <typename Collection>
 class ScriptCollectionIterator : public ScriptIterator {
   public:
 	ScriptCollectionIterator(const Collection* col) : pos(0), col(col) {}
-	virtual ScriptValueP next(ScriptValueP* key_out) {
+	virtual ScriptValueP_nullable next(ScriptValueP* key_out) {
 		if (pos < col->size()) {
 			if (key_out) *key_out = to_script((int)pos);
 			return to_script(col->at(pos++));
 		} else {
-			return ScriptValueP();
+			return ScriptValueP_nullable();
 		}
 	}
   private:
@@ -159,7 +164,7 @@ class ScriptCollection : public ScriptCollectionBase {
 			return ScriptValue::getIndex(index);
 		}
 	}
-	virtual ScriptValueP makeIterator(const ScriptValueP& thisP) const {
+	virtual ScriptValueP makeIterator() const {
 		return intrusive(new ScriptCollectionIterator<Collection>(value));
 	}
 	virtual int itemCount() const { return (int)value->size(); }
@@ -227,7 +232,7 @@ class ScriptCustomCollection : public ScriptCollectionBase {
   public:
 	virtual ScriptValueP getMember(const String& name) const;
 	virtual ScriptValueP getIndex(int index) const;
-	virtual ScriptValueP makeIterator(const ScriptValueP& thisP) const;
+	virtual ScriptValueP makeIterator() const;
 	virtual int itemCount() const { return (int)value.size(); }
 	/// Collections can be compared by comparing pointers
 	virtual CompareWhat compareAs(String&, void const*& compare_ptr) const {
@@ -251,7 +256,7 @@ class ScriptConcatCollection : public ScriptCollectionBase {
 	inline ScriptConcatCollection(ScriptValueP a, ScriptValueP b) : a(a), b(b) {}
 	virtual ScriptValueP getMember(const String& name) const;
 	virtual ScriptValueP getIndex(int index) const;
-	virtual ScriptValueP makeIterator(const ScriptValueP& thisP) const;
+	virtual ScriptValueP makeIterator() const;
 	virtual int itemCount() const { return a->itemCount() + b->itemCount(); }
 	/// Collections can be compared by comparing pointers
 	virtual CompareWhat compareAs(String&, void const*& compare_ptr) const {
@@ -271,16 +276,16 @@ template <typename T>
 class ScriptObject : public ScriptValue {
   public:
 	inline ScriptObject(const T& v) : value(v) {}
-	virtual ScriptType type() const { ScriptValueP d = getDefault(); return d ? d->type() : SCRIPT_OBJECT; }
+	virtual ScriptType type() const { ScriptValueP_nullable d = getDefault(); return d ? d->type() : SCRIPT_OBJECT; }
 	virtual String typeName() const { return type_name(*value); }
-	virtual String toString() const { ScriptValueP d = getDefault(); return d ? d->toString() : ScriptValue::toString(); }
-	virtual int    toInt()    const { ScriptValueP d = getDefault(); return d ? d->toInt()    : ScriptValue::toInt(); }
-	virtual double toDouble() const { ScriptValueP d = getDefault(); return d ? d->toDouble() : ScriptValue::toDouble(); }
-	virtual bool   toBool()   const { ScriptValueP d = getDefault(); return d ? d->toBool()   : ScriptValue::toBool(); }
-	virtual AColor toColor()  const { ScriptValueP d = getDefault(); return d ? d->toColor()  : ScriptValue::toColor(); }
-	virtual String toCode()   const { ScriptValueP d = getDefault(); return d ? d->toCode()   : to_code(*value); }
-	virtual GeneratedImageP toImage(const ScriptValueP& thisP) const {
-		ScriptValueP d = getDefault(); return d ? d->toImage(d) : ScriptValue::toImage(thisP);
+	virtual String toString() const { ScriptValueP_nullable d = getDefault(); return d ? d->toString() : ScriptValue::toString(); }
+	virtual int    toInt()    const { ScriptValueP_nullable d = getDefault(); return d ? d->toInt()    : ScriptValue::toInt(); }
+	virtual double toDouble() const { ScriptValueP_nullable d = getDefault(); return d ? d->toDouble() : ScriptValue::toDouble(); }
+	virtual bool   toBool()   const { ScriptValueP_nullable d = getDefault(); return d ? d->toBool()   : ScriptValue::toBool(); }
+	virtual AColor toColor()  const { ScriptValueP_nullable d = getDefault(); return d ? d->toColor()  : ScriptValue::toColor(); }
+	virtual String toCode()   const { ScriptValueP_nullable d = getDefault(); return d ? d->toCode()   : to_code(*value); }
+	virtual GeneratedImageP toImage() const {
+		ScriptValueP_nullable d = getDefault(); return d ? d->toImage() : ScriptValue::toImage();
 	}
 	virtual ScriptValueP getMember(const String& name) const {
 		#if USE_SCRIPT_PROFILING
@@ -289,10 +294,11 @@ class ScriptObject : public ScriptValue {
 		#endif
 		GetMember gm(name);
 		gm.handle(*value);
-		if (gm.result()) return gm.result();
-		else {
+		if (gm.result()) {
+			return from_non_null( gm.result() );
+		} else {
 			// try nameless member
-			ScriptValueP d = getDefault();
+			ScriptValueP_nullable d = getDefault();
 			if (d) {
 				return d->getMember(name);
 			} else {
@@ -300,7 +306,7 @@ class ScriptObject : public ScriptValue {
 			}
 		}
 	}
-	virtual ScriptValueP getIndex(int index) const { ScriptValueP d = getDefault(); return d ? d->getIndex(index) : ScriptValue::getIndex(index); }
+	virtual ScriptValueP getIndex(int index) const { ScriptValueP_nullable d = getDefault(); return d ? d->getIndex(index) : ScriptValue::getIndex(index); }
 	virtual ScriptValueP dependencyMember(const String& name, const Dependency& dep) const {
 		mark_dependency_member(*value, name, dep);
 		return getMember(name);
@@ -308,23 +314,23 @@ class ScriptObject : public ScriptValue {
 	virtual void dependencyThis(const Dependency& dep) {
 		mark_dependency_value(*value, dep);
 	}
-	virtual ScriptValueP makeIterator(const ScriptValueP& thisP) const {
-		ScriptValueP it = make_iterator(*value);
-		if (it) return it;
-		ScriptValueP d = getDefault();
-		if (d) return d->makeIterator(d);
-		return ScriptValue::makeIterator(thisP);
+	virtual ScriptValueP makeIterator() const {
+		ScriptValueP_nullable it = make_iterator(*value);
+		if (it) return from_non_null(it);
+		ScriptValueP_nullable d = getDefault();
+		if (d) return d->makeIterator();
+		return ScriptValue::makeIterator();
 	}
 	virtual int itemCount() const {
 		int i = item_count(*value);
 		if (i >= 0) return i;
-		ScriptValueP d = getDefault();
+		ScriptValueP_nullable d = getDefault();
 		if (d) return d->itemCount();
 		return ScriptValue::itemCount();
 	}
 	/// Objects can be compared by comparing pointers
 	virtual CompareWhat compareAs(String& compare_str, void const*& compare_ptr) const {
-		ScriptValueP d = getDefault();
+		ScriptValueP_nullable d = getDefault();
 		if (d) {
 			return d->compareAs(compare_str, compare_ptr);
 		} else {
@@ -336,7 +342,7 @@ class ScriptObject : public ScriptValue {
 	inline T getValue() const { return value; }
   private:
 	T value; ///< The object
-	ScriptValueP getDefault() const {
+	ScriptValueP_nullable getDefault() const {
 		GetDefaultMember gdm;
 		gdm.handle(*value);
 		return gdm.result();
@@ -357,10 +363,10 @@ class ScriptClosure : public ScriptValue {
 	/// Add a binding
 	void addBinding(Variable v, const ScriptValueP& value);
 	/// Is there a binding for the given variable? If so, retrieve it
-	ScriptValueP getBinding(Variable v) const;
+	ScriptValueP_nullable getBinding(Variable v) const;
 
-	/// Try to simplify this closure, returns a value if successful
-	ScriptValueP simplify();
+	/// Try to simplify this closure, returns the simplified value if successful
+	ScriptValueP_nullable simplify();
 
 	/// The wrapped function
 	ScriptValueP                          fun;
@@ -407,7 +413,7 @@ inline ScriptValueP to_script(const map<K,V>*      v) { return intrusive(new Scr
 template <typename K, typename V>
 inline ScriptValueP to_script(const IndexMap<K,V>* v) { return intrusive(new ScriptMap<IndexMap<K,V> >(v)); }
 template <typename T>
-inline ScriptValueP to_script(const intrusive_ptr<T>& v) { return intrusive(new ScriptObject<intrusive_ptr<T> >(v)); }
+inline ScriptValueP to_script(const intrusive_ptr_non_null<T>& v) { return intrusive(new ScriptObject<intrusive_ptr_non_null<T> >(v)); }
 template <typename T>
 inline ScriptValueP to_script(const Defaultable<T>& v) { return to_script(v()); }
 
@@ -429,6 +435,7 @@ template <> inline bool         from_script<bool>        (const ScriptValueP& va
 template <> inline Color        from_script<Color>       (const ScriptValueP& value) { return value->toColor(); }
 template <> inline AColor       from_script<AColor>      (const ScriptValueP& value) { return value->toColor(); }
 template <> inline wxDateTime   from_script<wxDateTime>  (const ScriptValueP& value) { return value->toDateTime(); }
+template <> inline GeneratedImageP from_script<GeneratedImageP> (const ScriptValueP& value) { return value->toImage(); }
 
 // ----------------------------------------------------------------------------- : EOF
 #endif

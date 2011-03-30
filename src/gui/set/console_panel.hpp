@@ -20,7 +20,7 @@ class TextCtrl;
 
 class ConsolePanel : public SetWindowPanel {
   public:
-	ConsolePanel(Window* parent, int id);
+	ConsolePanel(Window* parent, int id, const SetP& set);
 	
 	// --------------------------------------------------- : UI
 	

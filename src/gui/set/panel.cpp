@@ -12,12 +12,13 @@
 
 // ----------------------------------------------------------------------------- : SetWindowPanel
 
-SetWindowPanel::SetWindowPanel(Window* parent, int id, bool autoTabbing)
+SetWindowPanel::SetWindowPanel(Window* parent, int id, const SetP& set, bool autoTabbing)
 	: wxPanel(parent, id, wxDefaultPosition, wxDefaultSize, autoTabbing ? wxTAB_TRAVERSAL : 0)
+	, SetView(set)
 {}
 
-CardP SetWindowPanel::selectedCard() const {
-	return CardP();
+CardP_nullable SetWindowPanel::selectedCard() const {
+	return CardP_nullable();
 }
 
 bool SetWindowPanel::isInitialized() const {

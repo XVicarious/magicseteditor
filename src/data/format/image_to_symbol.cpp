@@ -144,13 +144,13 @@ bool find_symbol_shape_start(const ImageData& data, int& x_out, int& y_out) {
 	return false;
 }
 
-SymbolShapeP read_symbol_shape(const ImageData& data) {
+SymbolShapeP_nullable read_symbol_shape(const ImageData& data) {
 	// find start point
 	int xs, ys;
-	if (!find_symbol_shape_start(data, xs, ys))  return SymbolShapeP();
+	if (!find_symbol_shape_start(data, xs, ys)) return SymbolShapeP_nullable();
 	data(xs, ys) |= MARKED;
 	
-	SymbolShapeP shape(new SymbolShape);
+	SymbolShapeP shape = intrusive(new SymbolShape);
 	
 	// walk around, clockwise
 	xs += 1; // start right of the found point, otherwise last_move might think we came from above
@@ -214,18 +214,18 @@ SymbolP image_to_symbol(Image& img) {
 	threshold(img.GetData(), w, h);
 	// 2. read as many symbol shapes as we can
 	ImageData data = {w,h,img.GetData()};
-	SymbolP symbol(new Symbol);
+	SymbolP symbol = intrusive(new Symbol);
 	while (true) {
-		SymbolShapeP shape = read_symbol_shape(data);
+		SymbolShapeP_nullable shape = read_symbol_shape(data);
 		if (!shape) break;
-		symbol->parts.push_back(shape);
+		symbol->parts.push_back(from_non_null(shape));
 	}
 	reverse(symbol->parts.begin(), symbol->parts.end());
 	return symbol;
 }
 
 SymbolP import_symbol(Image& img) {
-	SymbolP symbol;
+	SymbolP symbol = null_for_guaranteed_assignment<Symbol>();
 	if (is_mse1_symbol(img)) {
 		Image img2 = img.GetSubImage(wxRect(20,0,40,40));
 		symbol = image_to_symbol(img2);

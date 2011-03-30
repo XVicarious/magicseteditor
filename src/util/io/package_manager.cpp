@@ -270,7 +270,7 @@ void PackageDirectory::installedPackages(vector<InstallablePackageP>& packages_o
 			try {
 				PackagedP pack = package_manager.openAny(*it2, true);
 				db_changed = true;
-				PackageVersionP ver(new PackageVersion(
+				PackageVersionP ver = intrusive(new PackageVersion(
 					is_local ? PackageVersion::STATUS_LOCAL : PackageVersion::STATUS_GLOBAL));
 				ver->check_status(*pack);
 				packages_out.push_back(intrusive(new InstallablePackage(intrusive(new PackageDescription(*pack)), ver)));
@@ -295,7 +295,7 @@ void PackageDirectory::installedPackages(vector<InstallablePackageP>& packages_o
 	if (db_changed) {
 		packages.clear();
 		FOR_EACH(p, packages_out) {
-			if (p->installed) packages.push_back(p->installed);
+			if (p->installed) packages.push_back(from_non_null(p->installed));
 		}
 		saveDatabase();
 	}
@@ -312,7 +312,7 @@ void PackageDirectory::bless(const String& package_name) {
 		}
 	}
 	// a new package
-	PackageVersionP ver(new PackageVersion(
+	PackageVersionP ver = intrusive(new PackageVersion(
 		is_local ? PackageVersion::STATUS_LOCAL : PackageVersion::STATUS_GLOBAL));
 	ver->check_status(*pack);
 	ver->bless();

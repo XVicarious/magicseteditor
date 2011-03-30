@@ -137,8 +137,8 @@ class Package : public IntrusivePtrVirtualBase {
 	void readFile(const String& file, T& obj);
 
 	template <typename T>
-	T readFile(const String& file) {
-		T obj;
+	intrusive_ptr_non_null<T> readFile(const String& file) {
+		intrusive_ptr_non_null<T> obj = intrusive(new T);
 		readFile(file, obj);
 		return obj;
 	}
@@ -284,8 +284,8 @@ class IncludePackage : public Packaged {
 
 /// Open a package with the given filename
 template <typename T>
-intrusive_ptr<T> open_package(const String& filename) {
-	intrusive_ptr<T> package(new T);
+intrusive_ptr_non_null<T> open_package(const String& filename) {
+	intrusive_ptr_non_null<T> package = intrusive(new T);
 	package->open(filename);
 	return package;
 }

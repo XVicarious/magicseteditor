@@ -50,12 +50,12 @@ class ScriptRegex : public ScriptValue, public Regex {
 
 ScriptRegexP regex_from_script(const ScriptValueP& value) {
 	// is it a regex already?
-	ScriptRegexP regex = dynamic_pointer_cast<ScriptRegex>(value);
+	ScriptRegexP_nullable regex = dynamic_pointer_cast<ScriptRegex>(value);
 	if (!regex) {
 		// TODO: introduce some kind of caching?
 		regex = intrusive(new ScriptRegex(value->toString()));
 	}
-	return regex;
+	return from_non_null(regex);
 }
 
 template <> inline ScriptRegexP from_script<ScriptRegexP>(const ScriptValueP& value) {
@@ -68,7 +68,7 @@ struct RegexReplacer {
 	ScriptRegexP match;					///< Regex to match
 	ScriptRegexP context;				///< Match only in a given context, optional
 	String       replacement_string;	///< Replacement
-	ScriptValueP replacement_function;	///< Replacement function instead of a simple string, optional
+	ScriptValueP_nullable replacement_function;	///< Replacement function instead of a simple string, optional
 	bool         recursive;				///< Recurse into the replacement
 	
 	String apply(Context& ctx, const String& input, int level = 0) const {
@@ -110,17 +110,17 @@ SCRIPT_FUNCTION_WITH_SIMPLIFY(replace_text) {
 	RegexReplacer replacer;
 	replacer.match = from_script<ScriptRegexP>(ctx.getVariable(SCRIPT_VAR_match), SCRIPT_VAR_match);
 	if (ctx.getVariableOpt(SCRIPT_VAR_in_context)) {
-		replacer.context = from_script<ScriptRegexP>(ctx.getVariableOpt(SCRIPT_VAR_in_context), SCRIPT_VAR_in_context);
+		replacer.context = from_script<ScriptRegexP>(from_non_null(ctx.getVariableOpt(SCRIPT_VAR_in_context)), SCRIPT_VAR_in_context);
 	}
 	if (ctx.getVariableOpt(SCRIPT_VAR_recursive)) {
-		replacer.recursive = from_script<bool>(ctx.getVariableOpt(SCRIPT_VAR_recursive), SCRIPT_VAR_recursive);
+		replacer.recursive = from_script<bool>(from_non_null(ctx.getVariableOpt(SCRIPT_VAR_recursive)), SCRIPT_VAR_recursive);
 	} else {
 		replacer.recursive = false;
 	}
 	replacer.replacement_function = ctx.getVariable(SCRIPT_VAR_replace);
 	if (replacer.replacement_function->type() != SCRIPT_FUNCTION) {
 		replacer.replacement_string = replacer.replacement_function->toString();
-		replacer.replacement_function = ScriptValueP();
+		replacer.replacement_function = ScriptValueP_nullable();
 	}
 	// run
 	SCRIPT_PARAM_C(String, input);
@@ -174,7 +174,7 @@ SCRIPT_FUNCTION_WITH_SIMPLIFY(break_text) {
 	SCRIPT_PARAM_C(String, input);
 	SCRIPT_PARAM_C(ScriptRegexP, match);
 	SCRIPT_OPTIONAL_PARAM_C_(ScriptRegexP, in_context);
-	ScriptCustomCollectionP ret(new ScriptCustomCollection);
+	ScriptCustomCollectionP ret = intrusive(new ScriptCustomCollection);
 	// find all matches
 	String::const_iterator start = input.begin();
 	ScriptRegex::Results results;
@@ -191,7 +191,7 @@ SCRIPT_FUNCTION_SIMPLIFY_CLOSURE(break_text) {
 			b.second = regex_from_script(b.second); // pre-compile
 		}
 	}
-	return ScriptValueP();
+	return ScriptValueP_nullable();
 }
 
 // ----------------------------------------------------------------------------- : Rules : regex split
@@ -200,7 +200,7 @@ SCRIPT_FUNCTION_WITH_SIMPLIFY(split_text) {
 	SCRIPT_PARAM_C(String, input);
 	SCRIPT_PARAM_C(ScriptRegexP, match);
 	SCRIPT_PARAM_DEFAULT(bool, include_empty, true);
-	ScriptCustomCollectionP ret(new ScriptCustomCollection);
+	ScriptCustomCollectionP ret = intrusive(new ScriptCustomCollection);
 	// find all matches
 	String::const_iterator start = input.begin();
 	ScriptRegex::Results results;
@@ -223,7 +223,7 @@ SCRIPT_FUNCTION_SIMPLIFY_CLOSURE(split_text) {
 			b.second = regex_from_script(b.second); // pre-compile
 		}
 	}
-	return ScriptValueP();
+	return ScriptValueP_nullable();
 }
 
 // ----------------------------------------------------------------------------- : Rules : regex match
@@ -239,7 +239,7 @@ SCRIPT_FUNCTION_SIMPLIFY_CLOSURE(match_text) {
 			b.second = regex_from_script(b.second); // pre-compile
 		}
 	}
-	return ScriptValueP();
+	return ScriptValueP_nullable();
 }
 
 // ----------------------------------------------------------------------------- : Init

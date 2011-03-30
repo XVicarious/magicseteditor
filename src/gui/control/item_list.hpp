@@ -67,7 +67,7 @@ class ItemList : public wxListView {
 	
 	// --------------------------------------------------- : Protected interface
 	/// Return the card at the given position in the sorted list
-	inline const VoidP& getItem(long pos) const { return sorted_list[pos]; }
+	inline const VoidP& getItem(long pos) const { return sorted_list.at(pos); }
 	/// Sort by the given column
 	virtual void sortBy(long column, bool ascending);
 	/// Refresh the card list (resort, refresh and reselect current item)
@@ -79,7 +79,7 @@ class ItemList : public wxListView {
 	/** If focus then the item is also focused and selected in the actual control.
 	 *  This should not be done when the item is selected because it was focused (leading to a loop).
 	 */
-	void selectItem(const VoidP& item, bool focus, bool event);
+	void selectItem(const VoidP_nullable& item, bool focus, bool event);
 	/// Select a item at the specified position
 	void selectItemPos(long pos, bool focus, bool force_focus = false);
 	/// Find the position for the selected_item
@@ -90,12 +90,12 @@ class ItemList : public wxListView {
 	/// Deselect everything in the control
 	void focusNone();
 	/// Actually select a certain item in the control
-	void focusItem(const VoidP& item, bool focus = true);
+	void focusItem(const VoidP_nullable& item, bool focus = true);
 	/// Count the number of focused items
 	long focusCount() const;
 	
 	// --------------------------------------------------- : Data
-	VoidP          selected_item;	  ///< The currently selected item
+	VoidP_nullable selected_item;	  ///< The currently selected item (if any)
 	long           selected_item_pos; ///< Position of the selected item in the sorted_list, or -1 if no card is selected
 	long           sort_by_column;    ///< Column to use for sorting, or -1 if not sorted
 	bool           sort_ascending;    ///< Sort order

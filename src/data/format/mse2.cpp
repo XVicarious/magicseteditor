@@ -34,7 +34,7 @@ class MSE2FileFormat : public FileFormat {
 			set_name.resize(set_name.size()-12);
 		}
 		// Open the set
-		SetP set(new Set);
+		SetP set = intrusive(new Set);
 		set->open(set_name);
 		settings.addRecentFile(set_name);
 		return set;

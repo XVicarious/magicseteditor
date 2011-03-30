@@ -483,8 +483,9 @@ UngroupReorderSymbolPartsAction::UngroupReorderSymbolPartsAction(SymbolGroup& gr
 	: group_parent(group_parent), group_pos(group_pos)
 	, target_parent(target_parent), target_pos(target_pos)
 {
-	group = dynamic_pointer_cast<SymbolGroup>(group_parent.parts.at(group_pos));
-	assert(group);
+	SymbolGroupP_nullable group = dynamic_pointer_cast<SymbolGroup>(group_parent.parts.at(group_pos));
+	if (!group) throw InternalError(_("UngroupReorderSymbolPartsAction"));
+	this->group = from_non_null(group);
 }
 
 String UngroupReorderSymbolPartsAction::getName(bool to_undo) const {

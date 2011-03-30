@@ -46,14 +46,13 @@ Image render_symbol(const SymbolP& symbol, double border_radius, int width, int 
 // ----------------------------------------------------------------------------- : Constructor
 
 SymbolViewer::SymbolViewer(const SymbolP& symbol, bool editing_hints, double size, double border_radius)
-	: border_radius(border_radius), editing_hints(editing_hints)
+	: SymbolView(symbol)
+	, border_radius(border_radius), editing_hints(editing_hints)
 	, rotation(0, RealRect(0,0,size,size), size)
 	, multiply(size,0,0,size)
 	, origin(0,0)
 	, in_symmetry(0)
-{
-	setSymbol(symbol);
-}
+{}
 
 void SymbolViewer::setZoom(double zoom) {
 	rotation.setZoom(zoom);

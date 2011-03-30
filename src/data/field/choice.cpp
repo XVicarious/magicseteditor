@@ -18,7 +18,7 @@ DECLARE_TYPEOF(map<String COMMA ScriptableImage>);
 // ----------------------------------------------------------------------------- : ChoiceField
 
 ChoiceField::ChoiceField()
-	: choices((Choice*)new Choice)
+	: choices(intrusive(new Choice))
 	, default_name(_("Default"))
 {}
 
@@ -190,7 +190,7 @@ void ChoiceStyle::initImage() {
 	//       CALL       0
 	//       PUSH_CONST nil
 	//      OR_ELSE
-	ScriptCustomCollectionP lookup(new ScriptCustomCollection());
+	ScriptCustomCollectionP lookup = intrusive(new ScriptCustomCollection());
 	FOR_EACH(ci, choice_images) {
 		lookup->key_value[ci.first] = ci.second.getValidScriptP();
 	}

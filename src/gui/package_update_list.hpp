@@ -21,8 +21,8 @@ class PackageUpdateList : public TreeList {
 	PackageUpdateList(Window* parent, const InstallablePackages& packages, bool show_only_installable, int id = wxID_ANY);
 	~PackageUpdateList();
 	
-	inline InstallablePackageP getSelection() const {
-		return selection == NOTHING ? InstallablePackageP() : get(selection);
+	inline InstallablePackageP_nullable getSelection() const {
+		return selection == NOTHING ? InstallablePackageP_nullable() : get(selection);
 	}
 	
 	inline InstallablePackageP get(size_t item) const {
@@ -46,7 +46,7 @@ class PackageUpdateList : public TreeList {
 	
 	class TreeItem;
   public:
-	typedef intrusive_ptr<TreeItem> TreeItemP;
+	typedef intrusive_ptr_non_null<TreeItem> TreeItemP;
   private:
 	class TreeItem : public Item {
 	  public:

@@ -29,8 +29,8 @@ DECLARE_TYPEOF_COLLECTION(KeywordModeP);
 
 // ----------------------------------------------------------------------------- : KeywordsPanel
 
-KeywordsPanel::KeywordsPanel(Window* parent, int id)
-	: SetWindowPanel(parent, id)
+KeywordsPanel::KeywordsPanel(Window* parent, int id, const SetP& set)
+	: SetWindowPanel(parent, id, set)
 	, menuKeyword(nullptr)
 {
 	// delayed initialization by initControls()
@@ -39,7 +39,7 @@ KeywordsPanel::KeywordsPanel(Window* parent, int id)
 void KeywordsPanel::initControls() {
 	// init controls
 	splitter  = new wxSplitterWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
-	list      = new KeywordList(splitter, ID_KEYWORD_LIST);
+	list      = new KeywordList(splitter, ID_KEYWORD_LIST, set);
 	panel     = new wxPanel(splitter, wxID_ANY);
 	keyword   = new TextCtrl(panel, ID_KEYWORD,  false);
 	mode      = new wxChoice(panel, ID_KEYWORD_MODE, wxDefaultPosition, wxDefaultSize, 0, nullptr);
@@ -351,7 +351,7 @@ void KeywordsPanel::onKeywordSelect(KeywordSelectEvent& ev) {
 		keyword ->setValue(intrusive(new KeywordTextValue(keyword->getFieldP(),  &kw, &kw.keyword, !kw.fixed, true)));
 		match   ->setValue(intrusive(new KeywordTextValue(match->getFieldP(),    &kw, &kw.match,   !kw.fixed)));
 		rules   ->setValue(intrusive(new KeywordTextValue(rules->getFieldP(),    &kw, &kw.rules,   !kw.fixed)));
-		intrusive_ptr<KeywordReminderTextValue> reminder_value(new KeywordReminderTextValue(*set, reminder->getFieldP(), &kw, !kw.fixed));
+		intrusive_ptr_non_null<KeywordReminderTextValue> reminder_value = intrusive(new KeywordReminderTextValue(*set, reminder->getFieldP(), &kw, !kw.fixed));
 		reminder->setValue(reminder_value);
 		errors->SetLabel(reminder_value->errors);
 		add_param->Enable(!kw.fixed && !set->game->keyword_parameter_types.empty());

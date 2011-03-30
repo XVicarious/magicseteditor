@@ -37,13 +37,13 @@ DECLARE_TYPEOF_COLLECTION(AddCardsScriptP);
 
 // ----------------------------------------------------------------------------- : CardsPanel
 
-CardsPanel::CardsPanel(Window* parent, int id)
-	: SetWindowPanel(parent, id)
+CardsPanel::CardsPanel(Window* parent, int id, const SetP& set)
+	: SetWindowPanel(parent, id, set)
 {
 	// init controls
 	editor      = new CardEditor(this, ID_EDITOR);
 	splitter    = new wxSplitterWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
-	card_list   = new FilteredImageCardList(splitter, ID_CARD_LIST);
+	card_list   = new FilteredImageCardList(splitter, ID_CARD_LIST, set);
 	nodes_panel = new wxPanel(splitter, wxID_ANY);
 	notes       = new TextCtrl(nodes_panel, ID_NOTES, true);
 	collapse_notes = new HoverButton(nodes_panel, ID_COLLAPSE_NOTES, _("btn_collapse"), wxNullColour, false);
@@ -429,7 +429,7 @@ void CardsPanel::doPaste() {
 class CardsPanel::SearchFindInfo : public FindInfo {
   public:
 	SearchFindInfo(CardsPanel& panel, wxFindReplaceData& what) : FindInfo(what), panel(panel) {}
-	virtual bool handle(const CardP& card, const TextValueP& value, size_t pos, bool was_selection) {
+	virtual bool handle(const CardP_nullable& card, const TextValueP& value, size_t pos, bool was_selection) {
 		// Select the card
 		panel.card_list->setCard(card);
 		return true;
@@ -441,7 +441,7 @@ class CardsPanel::SearchFindInfo : public FindInfo {
 class CardsPanel::ReplaceFindInfo : public FindInfo {
   public:
 	ReplaceFindInfo(CardsPanel& panel, wxFindReplaceData& what) : FindInfo(what), panel(panel) {}
-	virtual bool handle(const CardP& card, const TextValueP& value, size_t pos, bool was_selection) {
+	virtual bool handle(const CardP_nullable& card, const TextValueP& value, size_t pos, bool was_selection) {
 		// Select the card
 		panel.card_list->setCard(card);
 		// Replace
@@ -471,7 +471,7 @@ bool CardsPanel::doReplaceAll(wxFindReplaceData& what) {
 
 bool CardsPanel::search(FindInfo& find, bool from_start) {
 	bool include = from_start;
-	CardP current = card_list->getCard();
+	CardP_nullable current = card_list->getCard();
 	for (size_t i = 0 ; i < set->cards.size() ; ++i) {
 		CardP card = card_list->getCard( (long) (find.forward() ? i : set->cards.size() - i - 1) );
 		if (card == current) include = true;
@@ -488,10 +488,10 @@ bool CardsPanel::search(FindInfo& find, bool from_start) {
 
 // ----------------------------------------------------------------------------- : Selection
 
-CardP CardsPanel::selectedCard() const {
+CardP_nullable CardsPanel::selectedCard() const {
 	return card_list->getCard();
 }
-void CardsPanel::selectCard(const CardP& card) {
+void CardsPanel::selectCard(const CardP_nullable& card) {
 	if (!set) return; // we want onChangeSet first
 	card_list->setCard(card);
 	editor->setCard(card);

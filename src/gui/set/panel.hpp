@@ -22,7 +22,7 @@ class wxFindReplaceData;
  */
 class SetWindowPanel : public wxPanel, public SetView {
   public:
-	SetWindowPanel(Window* parent, int id, bool autoTabbing = true);
+	SetWindowPanel(Window* parent, int id, const SetP& set, bool autoTabbing = true);
 	
 	/// We will probably want to respond to set changes
 	virtual void onSetChange() {}
@@ -70,9 +70,9 @@ class SetWindowPanel : public wxPanel, public SetView {
 	virtual bool doReplaceAll(wxFindReplaceData&) { return false; }	///< Replace all matches
 	
 	// --------------------------------------------------- : Selection
-	virtual CardP selectedCard() const;					///< Return the currently selected card, or CardP()
-	virtual void  selectCard(const CardP& card) {}		///< Switch the view to another card, can be null
-	virtual void  selectFirstCard() {}					///< Switch the view to the first card
+	virtual CardP_nullable selectedCard() const; ///< Return the currently selected card, or null
+	virtual void  selectCard(const CardP_nullable& card) {} ///< Switch the view to another card, can be null
+	virtual void  selectFirstCard() {} ///< Switch the view to the first card
 	virtual void  selectionChoices(ExportCardSelectionChoices& out) {} ///< Card subsets that can be exported from this panel
 	
   protected:

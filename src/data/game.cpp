@@ -88,7 +88,7 @@ void Game::validate(Version v) {
 	}
 	// automatic pack if there are none
 	if (pack_types.empty()) {
-		PackTypeP pack(new PackType);
+		PackTypeP pack = intrusive(new PackType);
 		pack->name = _("Any card");
 		pack->enabled = true;
 		pack->selectable = true;
@@ -103,7 +103,7 @@ void Game::initCardListColorScript() {
 	if (card_list_color_script) return; // already done
 	// find a field with choice_colors_cardlist
 	FOR_EACH(s, card_fields) {
-		ChoiceFieldP cf = dynamic_pointer_cast<ChoiceField>(s);
+		ChoiceFieldP_nullable cf = dynamic_pointer_cast<ChoiceField>(s);
 		if (cf && !cf->choice_colors_cardlist.empty()) {
 			// found the field to use
 			// initialize script:  field.colors[card.field-name] or else rgb(0,0,0)

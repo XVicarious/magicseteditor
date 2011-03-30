@@ -220,7 +220,7 @@ void StylingEditor::showStylesheet(const StyleSheetP& stylesheet) {
 	setStyles(stylesheet, stylesheet->styling_style);
 	setData(set->stylingDataFor(*stylesheet));
 }
-void StylingEditor::showCard(const CardP& card) {
+void StylingEditor::showCard(const CardP_nullable& card) {
 	StyleSheetP stylesheet = set->stylesheetForP(card);
 	setStyles(stylesheet, stylesheet->styling_style);
 	setData(set->stylingDataFor(card));

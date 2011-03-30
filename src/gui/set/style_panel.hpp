@@ -21,7 +21,7 @@ class StylingEditor;
 /// A panel showing a list of stylesheets, and an editor for styling
 class StylePanel : public SetWindowPanel {
   public:
-	StylePanel(Window* parent, int id);
+	StylePanel(Window* parent, int id, SetP const& set);
 	
 	virtual void onChangeSet();
 	virtual void onAction(const Action&, bool undone);
@@ -39,7 +39,7 @@ class StylePanel : public SetWindowPanel {
 	virtual void doPaste();
 	
 	// --------------------------------------------------- : Selection
-	virtual void selectCard(const CardP& card);
+	virtual void selectCard(const CardP_nullable& card);
 	
   private:
 	DECLARE_EVENT_TABLE();
@@ -49,7 +49,7 @@ class StylePanel : public SetWindowPanel {
 	StylingEditor* editor;		///< Editor for styling information
 	wxButton*      use_for_all;
 	wxCheckBox*    use_custom_options;
-	CardP          card;		///< Card we are working on
+	CardP_nullable card;		///< Card we are working on
 	
 	void onStyleSelect(wxCommandEvent&);
 	void onUseForAll(wxCommandEvent&);

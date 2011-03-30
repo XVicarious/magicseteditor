@@ -26,7 +26,7 @@ class Packaged;
  *
  *  The package is for loading included files, it may be null
  */
-ScriptP parse(const String& s, Packaged* package, bool string_mode, vector<ScriptParseError>& errors_out);
+ScriptP_nullable parse(const String& s, Packaged* package, bool string_mode, vector<ScriptParseError>& errors_out);
 
 /// Parse a String to a Script
 /** If string_mode then s is interpreted as a string,

@@ -30,6 +30,7 @@ DEFINE_EVENT_TYPE(EVENT_PART_ACTIVATE);
 
 SymbolPartList::SymbolPartList(Window* parent, int id, SymbolPartsSelection& selection, SymbolP symbol)
 	: wxScrolledWindow(parent, id, wxDefaultPosition, wxDefaultSize, wxBORDER_THEME | wxVSCROLL)
+	, SymbolView(symbol)
 	, selection(selection)
 	, state_icons(9,8)
 {
@@ -44,8 +45,6 @@ SymbolPartList::SymbolPartList(Window* parent, int id, SymbolPartsSelection& sel
 	state_icons.Add(load_resource_image(_("icon_symmetry_rotation")));
 	state_icons.Add(load_resource_image(_("icon_symmetry_reflection")));
 	state_icons.Add(load_resource_image(_("icon_symbol_group")));
-	// view symbol
-	setSymbol(symbol);
 }
 
 void SymbolPartList::onChangeSymbol() {
@@ -137,13 +136,13 @@ void SymbolPartList::onLeftDown(wxMouseEvent& ev) {
 	// find item under cursor
 	if (ev.GetX() < 0 || ev.GetX() >= GetClientSize().x) return;
 	int pos = top + ev.GetY() / (ITEM_HEIGHT + 1);
-	SymbolPartP part = findItem(pos, ev.GetX());
+	SymbolPartP_nullable part = findItem(pos, ev.GetX());
 	if (part) {
 		// toggle/select
-		selection.select(part, ev.ShiftDown() ? SELECT_TOGGLE : SELECT_OVERRIDE);
+		selection.select(from_non_null(part), ev.ShiftDown() ? SELECT_TOGGLE : SELECT_OVERRIDE);
 		if (!ev.ShiftDown() && selection.selected(part)) {
 			// drag item
-			drag = part;
+			drag = from_non_null(part);
 			findParent(*part, drag_parent, drag_position);
 			drop_parent = SymbolGroupP();
 			CaptureMouse();
@@ -161,7 +160,8 @@ void SymbolPartList::onLeftUp(wxMouseEvent& ev) {
 			drop_position -= 1; // adjust for removal of the dragged part
 		}
 		// move part
-		SymbolGroupP par = drag_parent; drag_parent = SymbolGroupP();
+		SymbolGroupP par = from_non_null(drag_parent);
+		drag_parent = SymbolGroupP_nullable();
 		if (par != drop_parent || drag_position != drop_position) {
 			if (par != drop_parent && par->parts.size() == 1 && !par->isSymbolSymmetry()) {
 				// this leaves a group without elements, remove it
@@ -174,7 +174,7 @@ void SymbolPartList::onLeftUp(wxMouseEvent& ev) {
 			Refresh(false);
 		}
 	} else {
-		drag_parent = SymbolGroupP();
+		drag_parent = SymbolGroupP_nullable();
 	}
 }
 void SymbolPartList::onMotion(wxMouseEvent& ev) {
@@ -189,7 +189,7 @@ void SymbolPartList::onMotion(wxMouseEvent& ev) {
 		size_t       old_drop_position = drop_position;
 		bool         old_drop_inside   = drop_inside;
 		// find drop target
-		drop_parent = SymbolGroupP();
+		drop_parent = SymbolGroupP_nullable();
 		findDropTarget(symbol, pos, before);
 		// the drop parent must be an ancestor or sibling of ancestor of the drag_parent
 		// i.e. the drop parent's parent must be an ancestor of drag_parent
@@ -197,7 +197,7 @@ void SymbolPartList::onMotion(wxMouseEvent& ev) {
 			drop_inside = !drop_parent->isAncestor(*drag_parent);
 			while(drop_parent != symbol) {
 				// is drop_parent a sibling of an ancestor of drag_parent?
-				SymbolGroupP drop_parent_parent;
+				SymbolGroupP drop_parent_parent = null_for_guaranteed_assignment<SymbolGroup>();
 				size_t       drop_parent_position;
 				findParent(*drop_parent, drop_parent_parent, drop_parent_position);
 				if (!drop_parent_parent->isAncestor(*drag_parent)) {
@@ -299,25 +299,25 @@ void SymbolPartList::sendEvent(int type) {
 
 // ----------------------------------------------------------------------------- : Items
 
-SymbolPartP SymbolPartList::findItem(int i, int x) const {
+SymbolPartP_nullable SymbolPartList::findItem(int i, int x) const {
 	FOR_EACH(p, symbol->parts) {
-		SymbolPartP f = findItem(i, x, p);
+		SymbolPartP_nullable f = findItem(i, x, p);
 		if (f) return f;
 	}
-	return SymbolPartP();
+	return SymbolPartP_nullable();
 }
-SymbolPartP SymbolPartList::findItem(int& i, int x, const SymbolPartP& part) {
-	if (i < 0 ) return SymbolPartP();
+SymbolPartP_nullable SymbolPartList::findItem(int& i, int x, const SymbolPartP& part) {
+	if (i < 0 ) return SymbolPartP_nullable();
 	if (i == 0) return part;
 	i -= 1;
 	// sub item?
 	if (SymbolGroup* g = part->isSymbolGroup()) {
 		FOR_EACH(p, g->parts) {
-			SymbolPartP f = findItem(i, x - 5, p);
+			SymbolPartP_nullable f = findItem(i, x - 5, p);
 			if (f) return x < 5 ? part : f; // clicked on bar at the left of group?
 		}
 	}
-	return SymbolPartP();
+	return SymbolPartP_nullable();
 }
 
 void SymbolPartList::findParent(const SymbolPart& of, SymbolGroupP& parent_out, size_t& pos_out) {
@@ -325,11 +325,11 @@ void SymbolPartList::findParent(const SymbolPart& of, SymbolGroupP& parent_out, 
 		throw InternalError(_("Symbol part without a parent"));
 	}
 }
-bool SymbolPartList::findParent(const SymbolPart& of, const SymbolGroupP& g, SymbolGroupP& parent_out, size_t& pos_out) {
+bool SymbolPartList::findParent(const SymbolPart& of, const SymbolGroupP_nullable& g, SymbolGroupP& parent_out, size_t& pos_out) {
 	if (!g) return false;
 	for (size_t i = 0 ; i < g->parts.size() ; ++i) {
 		if (g->parts[i].get() == &of) {
-			parent_out = g;
+			parent_out = from_non_null(g);
 			pos_out    = i;
 			return true;
 		}
@@ -400,7 +400,7 @@ void SymbolPartList::OnDraw(DC& dc) {
 	drawItem(dc, 0, i, false, symbol);
 	// hide caret
 	if (selection.size() != 1) {
-		typing_in = SymbolPartP();
+		typing_in = SymbolPartP_nullable();
 		wxCaret* caret = GetCaret();
 		if (caret) caret->Hide();
 	}
@@ -496,7 +496,8 @@ const Image& SymbolPartList::itemPreview(int i, const SymbolPartP& part) {
 	if (!p.up_to_date) {
 		SolidFillSymbolFilter filter(*wxBLACK, Color(255,128,128));
 		// temporary symbol
-		SymbolP sym(new Symbol); sym->parts.push_back(part);
+		SymbolP sym = intrusive(new Symbol);
+		sym->parts.push_back(part);
 		Image img;
 		if (SymbolShape* s = part->isSymbolShape()) {
 			if (s->combine == SYMBOL_COMBINE_SUBTRACT) {

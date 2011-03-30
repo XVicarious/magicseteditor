@@ -440,25 +440,28 @@ SCRIPT_FUNCTION(remove_tags) {
 
 /// position of some element in a vector
 /** 0 based index, -1 if not found */
-int position_in_vector(const ScriptValueP& of, const ScriptValueP& in, const ScriptValueP& order_by, const ScriptValueP& filter) {
+int position_in_vector(const ScriptValueP& of, const ScriptValueP& in, const ScriptValueP_nullable& order_by, const ScriptValueP_nullable& filter) {
 	ScriptType of_t = of->type(), in_t = in->type();
-	if (of_t == SCRIPT_STRING || in_t == SCRIPT_STRING) {
+	if (of_t == SCRIPT_STRING && in_t == SCRIPT_STRING) {
+		if (order_by) {
+			throw ScriptError(_("position: order_by is not supported when searching in a string"));
+		}
 		// string finding
 		return (int)of->toString().find(in->toString()); // (int)npos == -1
 	} else if (order_by || filter) {
-		ScriptObject<Set*>*  s = dynamic_cast<ScriptObject<Set*>* >(in.get());
-		ScriptObject<CardP>* c = dynamic_cast<ScriptObject<CardP>*>(of.get());
-		if (s && c) {
-			return s->getValue()->positionOfCard(c->getValue(), order_by, filter);
+		ScriptObject<Set*>*  set  = dynamic_cast<ScriptObject<Set*>* >(in.get());
+		ScriptObject<CardP>* card = dynamic_cast<ScriptObject<CardP>*>(of.get());
+		if (set && card) {
+			return set->getValue()->positionOfCard(card->getValue(), order_by, filter);
 		} else {
 			throw ScriptError(_("position: using 'order_by' or 'filter' is only supported for finding cards in the set"));
 		}
 	} else {
 		// unordered position
-		ScriptValueP it = in->makeIterator(in);
+		ScriptValueP it = in->makeIterator();
 		int i = 0;
-		while (ScriptValueP v = it->next()) {
-			if (equal(of, v)) return i;
+		while (ScriptValueP_nullable v = it->next()) {
+			if (equal(of, from_non_null(v))) return i;
 			i++;
 		}
 	}
@@ -476,6 +479,9 @@ inline bool smart_equal_first(const pair<String,ScriptValueP>& a, const pair<Str
 ScriptValueP sort_script(Context& ctx, const ScriptValueP& list, ScriptValue& order_by, bool remove_duplicates) {
 	ScriptType list_t = list->type();
 	if (list_t == SCRIPT_STRING) {
+		if (&order_by != script_nil.get()) {
+			throw ScriptError(_("order_by is not supported when sorting a string"));
+		}
 		// sort a string
 		String s = list->toString();
 		sort(s.begin(), s.end());
@@ -488,10 +494,10 @@ ScriptValueP sort_script(Context& ctx, const ScriptValueP& list, ScriptValue& or
 		ScriptObject<Set*>* set = dynamic_cast<ScriptObject<Set*>*>(list.get());
 		// sort a collection
 		vector<pair<String,ScriptValueP> > values;
-		ScriptValueP it = list->makeIterator(list);
-		while (ScriptValueP v = it->next()) {
-			ctx.setVariable(set ? _("card") : _("input"), v);
-			values.push_back(make_pair(order_by.eval(ctx)->toString(), v));
+		ScriptValueP it = list->makeIterator();
+		while (ScriptValueP_nullable v = it->next()) {
+			ctx.setVariable(set ? _("card") : _("input"), from_non_null(v));
+			values.push_back(make_pair(order_by.eval(ctx)->toString(), from_non_null(v)));
 		}
 		sort(values.begin(), values.end(), smart_less_first);
 		// unique
@@ -499,7 +505,7 @@ ScriptValueP sort_script(Context& ctx, const ScriptValueP& list, ScriptValue& or
 			values.erase( unique(values.begin(), values.end(), smart_equal_first), values.end() );
 		}
 		// return collection
-		ScriptCustomCollectionP ret(new ScriptCustomCollection());
+		ScriptCustomCollectionP ret = intrusive(new ScriptCustomCollection());
 		FOR_EACH(v, values) {
 			ret->value.push_back(v.second);
 		}
@@ -511,16 +517,16 @@ ScriptValueP sort_script(Context& ctx, const ScriptValueP& list, ScriptValue& or
 SCRIPT_FUNCTION_WITH_DEP(position_of) {
 	ScriptValueP of       = ctx.getVariable(_("of"));
 	ScriptValueP in       = ctx.getVariable(_("in"));
-	ScriptValueP order_by = ctx.getVariableOpt(_("order_by"));
-	ScriptValueP filter   = ctx.getVariableOpt(_("filter"));
-	if (filter == script_nil) filter = ScriptValueP();
+	ScriptValueP_nullable order_by = ctx.getVariableOpt(_("order_by"));
+	ScriptValueP_nullable filter   = ctx.getVariableOpt(_("filter"));
+	if (filter == script_nil) filter = ScriptValueP_nullable();
 	SCRIPT_RETURN(position_in_vector(of, in, order_by, filter));
 }
 SCRIPT_FUNCTION_DEPENDENCIES(position_of) {
 	ScriptValueP of       = ctx.getVariable(_("of"));
 	ScriptValueP in       = ctx.getVariable(_("in"));
-	ScriptValueP order_by = ctx.getVariableOpt(_("order_by"));
-	ScriptValueP filter   = ctx.getVariableOpt(_("filter"));
+	ScriptValueP_nullable order_by = ctx.getVariableOpt(_("order_by"));
+	ScriptValueP_nullable filter   = ctx.getVariableOpt(_("filter"));
 	ScriptObject<Set*>*  s = dynamic_cast<ScriptObject<Set*>* >(in.get());
 	ScriptObject<CardP>* c = dynamic_cast<ScriptObject<CardP>*>(of.get());
 	if (s && c) {
@@ -562,12 +568,12 @@ SCRIPT_FUNCTION(filter_list) {
 	SCRIPT_PARAM_C(ScriptValueP, input);
 	SCRIPT_PARAM_C(ScriptValueP, filter);
 	// filter a collection
-	ScriptCustomCollectionP ret(new ScriptCustomCollection());
-	ScriptValueP it = input->makeIterator(input);
-	while (ScriptValueP v = it->next()) {
-		ctx.setVariable(SCRIPT_VAR_input, v);
+	ScriptCustomCollectionP ret = intrusive(new ScriptCustomCollection());
+	ScriptValueP it = input->makeIterator();
+	while (ScriptValueP_nullable v = it->next()) {
+		ctx.setVariable(SCRIPT_VAR_input, from_non_null(v));
 		if (filter->eval(ctx)->toBool()) {
-			ret->value.push_back(v);
+			ret->value.push_back(from_non_null(v));
 		}
 	}
 	// TODO : somehow preserve keys
@@ -585,10 +591,10 @@ SCRIPT_FUNCTION(sort_list) {
 SCRIPT_FUNCTION(random_shuffle) {
 	SCRIPT_PARAM_C(ScriptValueP, input);
 	// convert to CustomCollection
-	ScriptCustomCollectionP ret(new ScriptCustomCollection());
-	ScriptValueP it = input->makeIterator(input);
-	while (ScriptValueP v = it->next()) {
-		ret->value.push_back(v);
+	ScriptCustomCollectionP ret = intrusive(new ScriptCustomCollection());
+	ScriptValueP it = input->makeIterator();
+	while (ScriptValueP_nullable v = it->next()) {
+		ret->value.push_back(from_non_null(v));
 	}
 	// shuffle
 	random_shuffle(ret->value.begin(), ret->value.end());
@@ -611,7 +617,7 @@ SCRIPT_FUNCTION(random_select_many) {
 	SCRIPT_OPTIONAL_PARAM_C_(ScriptValueP, replace);
 	bool with_replace = replace && replace->type() != SCRIPT_FUNCTION && replace->toBool();
 	// pick many
-	ScriptCustomCollectionP ret(new ScriptCustomCollection);
+	ScriptCustomCollectionP ret = intrusive(new ScriptCustomCollection);
 	int itemCount = input->itemCount();
 	if (with_replace) {
 		if (itemCount == 0) {
@@ -625,9 +631,9 @@ SCRIPT_FUNCTION(random_select_many) {
 			throw ScriptError(String::Format(_("Can not select %d items from a collection conaining only %d items"), count, input->itemCount()));
 		}
 		// transfer all to ret and shuffle
-		ScriptValueP it = input->makeIterator(input);
-		while (ScriptValueP v = it->next()) {
-			ret->value.push_back(v);
+		ScriptValueP it = input->makeIterator();
+		while (ScriptValueP_nullable v = it->next()) {
+			ret->value.push_back(from_non_null(v));
 		}
 		random_shuffle(ret->value.begin(), ret->value.end());
 		// keep only the first 'count'

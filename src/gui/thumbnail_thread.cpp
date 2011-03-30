@@ -47,7 +47,7 @@ class ThumbnailThreadWorker : public wxThread {
 	
 	virtual ExitCode Entry();
 	
-	ThumbnailRequestP current; ///< Request we are working on
+	ThumbnailRequestP_nullable current; ///< Request we are working on
 	ThumbnailThread*  parent;
 	bool              stop; ///< Suspend computation
 };
@@ -91,8 +91,8 @@ wxThread::ExitCode ThumbnailThreadWorker::Entry() {
 		// store result in closed request list
 		{
 			wxMutexLocker lock(parent->mutex);
-			parent->closed_requests.push_back(make_pair(current,img));
-			current = ThumbnailRequestP();
+			parent->closed_requests.push_back(make_pair(from_non_null(current),img));
+			current = ThumbnailRequestP_nullable();
 			parent->completed.Signal();
 		}
 	}

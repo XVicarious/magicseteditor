@@ -209,12 +209,12 @@ String symbols_to_html(const String& str, SymbolFont& symbol_font, double size) 
 	return html;
 }
 
-String to_html(const String& str_in, const SymbolFontP& symbol_font, double symbol_size) {
+String to_html(const String& str_in, const SymbolFontP_nullable& symbol_font, double symbol_size) {
 	String str = remove_tag_contents(str_in,_("<sep-soft"));
 	String ret;
 	Tag bold  (_("<b>"), _("</b>")),
-        italic(_("<i>"), _("</i>")),
-        symbol(_("<span class=\"symbol\">"), _("</span>"));
+	    italic(_("<i>"), _("</i>")),
+	    symbol(_("<span class=\"symbol\">"), _("</span>"));
 	TagStack tags;
 	String symbols;
 	for (size_t i = 0 ; i < str.size() ; ) {
@@ -233,7 +233,8 @@ String to_html(const String& str_in, const SymbolFontP& symbol_font, double symb
 				tags.open (ret, symbol);
 			} else if (is_substr(str, i, _("/sym"))) {
 				if (!symbols.empty()) {
-					// write symbols in a special way
+					// write symbols as images
+					assert(symbol_font);
 					tags.write_pending_tags(ret);
 					ret += symbols_to_html(symbols, *symbol_font, symbol_size);
 					symbols.clear();
@@ -277,7 +278,7 @@ String to_html(const String& str_in, const SymbolFontP& symbol_font, double symb
 SCRIPT_FUNCTION(to_html) {
 	SCRIPT_PARAM_C(String, input);
 	// symbol font?
-	SymbolFontP symbol_font;
+	SymbolFontP_nullable symbol_font;
 	SCRIPT_OPTIONAL_PARAM_N(String, _("symbol_font"), font_name) {
 		symbol_font = SymbolFont::byName(font_name);
 		symbol_font->update(ctx);
@@ -419,9 +420,10 @@ SCRIPT_FUNCTION(write_image_file) {
 	Image image;
 	GeneratedImage::Options options(width, height, ei.export_template.get(), ei.set.get());
 	if (card) {
-		image = conform_image(export_bitmap(ei.set, card->getValue()).ConvertToImage(), options);
+		if (!ei.set) throw ScriptError(_("write_image_file: No set, so can't export card"));
+		image = conform_image(export_bitmap(from_non_null(ei.set), card->getValue()).ConvertToImage(), options);
 	} else {
-		image = image_from_script(input)->generateConform(options);
+		image = input->toImage()->generateConform(options);
 	}
 	if (!image.Ok()) throw Error(_("Unable to generate image for file ") + file);
 	// write

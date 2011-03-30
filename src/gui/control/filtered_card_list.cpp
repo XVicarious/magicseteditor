@@ -13,8 +13,9 @@ DECLARE_TYPEOF_COLLECTION(CardP);
 
 // ----------------------------------------------------------------------------- : FilteredCardList
 
-FilteredCardList::FilteredCardList(Window* parent, int id, long additional_style)
-	: CardListBase(parent, id, additional_style)
+FilteredCardList::FilteredCardList(Window* parent, int id, SetP const& set, long additional_style)
+	: CardListBase(parent, id, set, additional_style)
+	, filter(no_filter<Card>())
 {}
 
 void FilteredCardList::setFilter(const CardListFilterP& filter) {
@@ -24,7 +25,7 @@ void FilteredCardList::setFilter(const CardListFilterP& filter) {
 
 void FilteredCardList::onChangeSet() {
 	// clear filter before changing set, the filter might not make sense for a different set
-	filter = CardListFilterP();
+	filter = no_filter<Card>();
 	CardListBase::onChangeSet();
 }
 

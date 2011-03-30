@@ -36,7 +36,7 @@ class SymbolPartsSelection {
 	/// Clear selection
 	void clear();	
 	/// Select a part or toggle its selection
-	/** Return true if the selection changed */
+	/** Return true if the selection changed. */
 	bool select(const SymbolPartP& part, SelectMode mode = SELECT_OVERRIDE);
 	/// Toggle the selection of the parts in a rectangle (a,b) or (a,c) but not in both
 	/** Return true if the selection changed */
@@ -46,7 +46,7 @@ class SymbolPartsSelection {
 	/** Returns SymbolPartP() if nothing is found.
 	 *  Does not select inside groups unless the part in question is already selected.
 	 */
-	SymbolPartP find(const Vector2D& position) const;
+	SymbolPartP_nullable find(const Vector2D& position) const;
 	
 	/// Get the selection
 	inline const set<SymbolPartP>& get() const { return selection; }
@@ -55,15 +55,15 @@ class SymbolPartsSelection {
 	inline bool empty() const { return selection.empty(); }
 	/// Number of items selected
 	inline size_t size() const { return selection.size(); }
-	/// Is a part selected?
-	inline bool selected(const SymbolPartP& part) const {
-		return selection.find(part) != selection.end();
+	/// Is a part selected? Returns false for null (for convenience)
+	inline bool selected(const SymbolPartP_nullable& part) const {
+		return selection.find(from_non_null(part)) != selection.end();
 	}
 	
 	/// Get any SymbolShape if there is one selected
-	SymbolShapeP getAShape() const;
+	SymbolShapeP_nullable getAShape() const;
 	/// Get any SymbolSymmetry if there is one selected
-	SymbolSymmetryP getASymmetry() const;
+	SymbolSymmetryP_nullable getASymmetry() const;
 	/// Get the only selected thing
 	inline SymbolPartP getOnlyOne() const {
 		assert(selection.size() == 1);
@@ -75,7 +75,7 @@ class SymbolPartsSelection {
 	set<SymbolPartP> selection;
 	
 	/// Find a part, in some root
-	SymbolPartP find(const SymbolPartP& part, const Vector2D& pos) const;
+	SymbolPartP_nullable find(const SymbolPartP& part, const Vector2D& pos) const;
 	/// Select rect for some parent
 	bool selectRect(const SymbolGroup& parent, const Vector2D& a, const Vector2D& b, const Vector2D& c);
 	

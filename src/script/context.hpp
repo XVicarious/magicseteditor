@@ -58,14 +58,14 @@ class Context {
 	
 	/// Get the value of a variable, throws if it not set
 	ScriptValueP getVariable(const String& name);
-	/// Get the value of a variable, returns ScriptValue() if it is not set
-	ScriptValueP getVariableOpt(const String& name);
 	/// Get the value of a variable, throws if it not set
 	ScriptValueP getVariable(Variable var);
 	/// Get the value of a variable, returns ScriptValue() if it is not set
-	inline ScriptValueP getVariableOpt(Variable var) { return variables[var].value; }
+	ScriptValueP_nullable getVariableOpt(const String& name);
+	/// Get the value of a variable, returns ScriptValue() if it is not set
+	inline ScriptValueP_nullable getVariableOpt(Variable var) { return variables[var].value; }
 	/// Get the value of a variable only if it was set in the current scope, returns ScriptValue() if it is not set
-	ScriptValueP getVariableInScopeOpt(Variable var);
+	ScriptValueP_nullable getVariableInScopeOpt(Variable var);
 	/// In what scope was the variable set?
 	/** Returns 0 for the current scope and >0 for outer scopes.
 	 *  Returns -1 if the varible is not set
@@ -89,7 +89,7 @@ class Context {
 	struct VariableValue {
 		VariableValue() : level(0) {}
 		unsigned int level; ///< Scope level on which this variable was set
-		ScriptValueP value; ///< Value of this variable
+		ScriptValueP_nullable value; ///< Value of this variable
 	};
 	/// Record of a variable binding that is being shadowed (overwritten) by another binding
 	struct Binding {

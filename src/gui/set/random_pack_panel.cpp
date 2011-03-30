@@ -31,7 +31,7 @@ DECLARE_TYPEOF_COLLECTION(PackAmountPicker);
 /// A card list that contains the 
 class RandomCardList : public CardListBase {
   public:
-	RandomCardList(Window* parent, int id, long style = 0);
+	RandomCardList(Window* parent, int id, SetP const& set, long style = 0);
 	
 	/// Reset the list
 	void reset();
@@ -46,8 +46,8 @@ class RandomCardList : public CardListBase {
 	virtual void onChangeSet();
 };
 
-RandomCardList::RandomCardList(Window* parent, int id, long style)
-	: CardListBase(parent, id, style)
+RandomCardList::RandomCardList(Window* parent, int id, SetP const& set, long style)
+	: CardListBase(parent, id, set, style)
 {}
 
 void RandomCardList::reset() {
@@ -72,7 +72,9 @@ void RandomCardList::getItems(vector<VoidP>& out) const {
 class PackTotalsPanel : public wxPanel {
   public:
 	PackTotalsPanel(Window* parent, int id, PackGenerator& generator, bool show_all = false)
-		: wxPanel(parent,id), generator(generator), show_all(show_all) {}
+		: wxPanel(parent,id), generator(generator), show_all(show_all)
+		, game(null_for_guaranteed_assignment<Game>())
+		{}
 	void setGame(const GameP& game);
 	virtual wxSize DoGetBestSize() const;
   private:
@@ -236,13 +238,13 @@ void PackAmountPicker::destroy(wxFlexGridSizer* sizer) {
 
 class CustomPackDialog : public wxDialog {
   public:
-	CustomPackDialog(Window* parent, const SetP& set, const PackTypeP& edited_pack, bool can_remove);
-	PackTypeP get() const { return edited_pack; }
+	CustomPackDialog(Window* parent, const SetP& set, const PackTypeP_nullable& edited_pack, bool can_remove);
+	PackTypeP_nullable get() const { return edited_pack; }
   private:
 	DECLARE_EVENT_TABLE();
 	
 	SetP             set;
-	PackTypeP        edited_pack;
+	PackTypeP_nullable edited_pack;
 	PackGenerator    generator;
 	wxTextCtrl*      name;
 	PackTotalsPanel* totals;
@@ -256,7 +258,7 @@ class CustomPackDialog : public wxDialog {
 	bool isDuplicateName(const String& name);
 };
 
-CustomPackDialog::CustomPackDialog(Window* parent, const SetP& set, const PackTypeP& edited_pack, bool can_remove)
+CustomPackDialog::CustomPackDialog(Window* parent, const SetP& set, const PackTypeP_nullable& edited_pack, bool can_remove)
 	: wxDialog(parent, wxID_ANY, _TITLE_("custom pack"), wxDefaultPosition, wxSize(500,500))
 	, set(set), edited_pack(edited_pack)
 {
@@ -359,7 +361,7 @@ void CustomPackDialog::onOk(wxCommandEvent&) {
 	EndModal(wxID_OK);
 }
 void CustomPackDialog::onRemove(wxCommandEvent&) {
-	edited_pack = PackTypeP();
+	edited_pack = PackTypeP_nullable();
 	EndModal(wxID_OK);
 }
 void CustomPackDialog::onAmountChange(wxSpinEvent&) {
@@ -374,8 +376,8 @@ END_EVENT_TABLE()
 
 // ----------------------------------------------------------------------------- : RandomPackPanel
 
-RandomPackPanel::RandomPackPanel(Window* parent, int id)
-	: SetWindowPanel(parent, id)
+RandomPackPanel::RandomPackPanel(Window* parent, int id, const SetP& set)
+	: SetWindowPanel(parent, id, set)
 {
 	// delayed initialization by initControls()
 }
@@ -383,7 +385,7 @@ RandomPackPanel::RandomPackPanel(Window* parent, int id)
 void RandomPackPanel::initControls() {
 	// init controls
 	preview   = new CardViewer(this, wxID_ANY);
-	card_list = new RandomCardList(this, wxID_ANY);
+	card_list = new RandomCardList(this, wxID_ANY, set);
 	generate_button = new wxButton(this, ID_GENERATE_PACK, _BUTTON_("generate pack"));
 	seed_random = new wxRadioButton(this, ID_SEED_RANDOM, _BUTTON_("random seed"));
 	seed_fixed  = new wxRadioButton(this, ID_SEED_FIXED,  _BUTTON_("fixed seed"));
@@ -466,7 +468,7 @@ void RandomPackPanel::onChangeSet() {
 	seed_fixed ->SetValue(!gs.pack_seed_random);
 	seed->Enable(!gs.pack_seed_random);
 	setSeed(gs.pack_seed);
-	generator.set = SetP(); // prevent spurious events
+	generator.set = SetP_nullable(); // prevent spurious events
 	FOR_EACH(pick, pickers) {
 		pick.value->SetValue(gs.pack_amounts[pick.pack->name]);
 	}
@@ -526,9 +528,9 @@ void RandomPackPanel::onCommand(int id) {
 			break;
 		}
 		case ID_CUSTOM_PACK: {
-			CustomPackDialog dlg(this, set, PackTypeP(), false);
-			if (dlg.ShowModal() == wxID_OK) {
-				set->actions.addAction( new AddPackAction(ADD,*set,dlg.get()) );
+			CustomPackDialog dlg(this, set, PackTypeP_nullable(), false);
+			if (dlg.ShowModal() == wxID_OK && dlg.get()) {
+				set->actions.addAction( new AddPackAction(ADD,*set,from_non_null(dlg.get())) );
 			}
 			break;
 		}
@@ -544,7 +546,7 @@ void RandomPackPanel::onPackTypeClick(wxCommandEvent& ev) {
 					// update pack
 					for (size_t i = 0 ; i < set->pack_types.size() ; ++i) {
 						if (set->pack_types[i] == pick.pack) {
-							set->actions.addAction( new ChangePackAction(*set,i,dlg.get()) );
+							set->actions.addAction( new ChangePackAction(*set,i,from_non_null(dlg.get())) );
 						}
 					}
 				} else {
@@ -616,12 +618,12 @@ void RandomPackPanel::generate() {
 
 // ----------------------------------------------------------------------------- : Selection
 
-CardP RandomPackPanel::selectedCard() const {
-	if (!isInitialized()) return CardP();
+CardP_nullable RandomPackPanel::selectedCard() const {
+	if (!isInitialized()) return CardP_nullable();
 	return card_list->getCard();
 }
 
-void RandomPackPanel::selectCard(const CardP& card) {
+void RandomPackPanel::selectCard(const CardP_nullable& card) {
 	// Don't change the card based on other panels
 	//preview->setCard(card);
 }

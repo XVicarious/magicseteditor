@@ -18,7 +18,7 @@
 /// A card list with check boxes
 class SelectCardList : public CardListBase {
   public:
-	SelectCardList(Window* parent, int id, long additional_style = 0);
+	SelectCardList(Window* parent, int id, SetP const& set, long additional_style = 0);
 	~SelectCardList();
 	/// Select all cards
 	void selectAll();

@@ -19,7 +19,7 @@
 
 // ----------------------------------------------------------------------------- : NewSetWindow
 
-SetP new_set_window(Window* parent) {
+SetP_nullable new_set_window(Window* parent) {
 	NewSetWindow wnd(parent);
 	wnd.ShowModal();
 	return wnd.set;
@@ -128,7 +128,7 @@ END_EVENT_TABLE  ()
 // ----------------------------------------------------------------------------- : SelectStyleSheetWindow
 
 
-StyleSheetP select_stylesheet(const Game& game, const String& failed_name) {
+StyleSheetP_nullable select_stylesheet(const Game& game, const String& failed_name) {
 	SelectStyleSheetWindow wnd(nullptr, game, failed_name);
 	wnd.ShowModal();
 	return wnd.stylesheet;

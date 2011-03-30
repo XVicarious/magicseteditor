@@ -25,7 +25,7 @@ class FilterCtrl;
 /// A panel for listing and editing the keywords in a set
 class KeywordsPanel : public SetWindowPanel {
   public:
-	KeywordsPanel(Window* parent, int id);
+	KeywordsPanel(Window* parent, int id, const SetP& set);
 	~KeywordsPanel();
 	
 	virtual void onChangeSet();

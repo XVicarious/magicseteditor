@@ -31,7 +31,7 @@ class TreeList : public wxPanel {
 	
   public:
 	
-	/// An item in the tree list
+	/// An item in the tree list, subclasses should also have an Item type that adds extra data
 	class Item : public IntrusivePtrBase<Item> {
 	  public:
 		Item() : level(0), expanded(false) {}
@@ -46,7 +46,7 @@ class TreeList : public wxPanel {
 		size_t position; // NOTHING if invisible, otherwise the line the item is on
 		UInt   lines;    // lines in front of this item (bit set)
 	};
-	typedef intrusive_ptr<Item> ItemP;
+	typedef intrusive_ptr_non_null<Item> ItemP;
 	
   protected:
 	

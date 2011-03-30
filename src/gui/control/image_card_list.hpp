@@ -22,7 +22,7 @@ DECLARE_POINTER_TYPE(ImageField);
 class ImageCardList : public CardListBase {
   public:
 	~ImageCardList();
-	ImageCardList(Window* parent, int id, long additional_style = 0);
+	ImageCardList(Window* parent, int id, SetP const& set, long additional_style = 0);
   protected:
 	virtual int  OnGetItemImage(long pos) const;
 	virtual void onRebuild();
@@ -32,10 +32,10 @@ class ImageCardList : public CardListBase {
 	DECLARE_EVENT_TABLE();
 	void onIdle(wxIdleEvent&);
 	
-	ImageFieldP image_field;			///< Field to use for card images
-	mutable map<String,int> thumbnails;	///< image thumbnails, based on image_field
+	ImageFieldP_nullable image_field; ///< Field to use for card images
+	mutable map<String,int> thumbnails; ///< image thumbnails, based on image_field
 	
-	ImageFieldP findImageField();
+	ImageFieldP_nullable findImageField();
 	
 	friend class CardThumbnailRequest;
 };
@@ -44,7 +44,7 @@ class ImageCardList : public CardListBase {
 
 class FilteredImageCardList : public ImageCardList {
   public:
-	FilteredImageCardList(Window* parent, int id, long additional_style = 0);
+	FilteredImageCardList(Window* parent, int id, SetP const& set, long additional_style = 0);
 	
 	/// Change the filter to use, if null then don't use a filter
 	void setFilter(const CardListFilterP& filter);

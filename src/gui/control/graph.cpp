@@ -58,7 +58,7 @@ void GraphDataPre::splitList(size_t axis) {
 		size_t comma = v.find_first_of(_(','));
 		while (comma != String::npos) {
 			// split
-			GraphElementP e2(new GraphElement(e));
+			GraphElementP e2 = intrusive(new GraphElement(e));
 			e2->values[axis] = v.substr(0,comma);
 			elements.push_back(e2);
 			if (is_substr(v, comma, _(", "))) ++comma; // skip space after it
@@ -270,6 +270,12 @@ void GraphData::indices(const vector<int>& match, vector<size_t>& out) const {
 
 // ----------------------------------------------------------------------------- : Graph1D
 
+Graph1D::Graph1D(GraphDataP const& data, size_t axis)
+	: Graph(data), axis(axis)
+{
+	if (axis >= data->axes.size()) throw InternalError(_("axis doesn't exist"));
+}
+
 void Graph1D::draw(RotatedDC& dc, const vector<int>& current, DrawLayer layer) const {
 	draw(dc, axis < current.size() ? current.at(axis) : -1, layer);
 }
@@ -284,24 +290,14 @@ bool Graph1D::findItem(const RealPoint& pos, const RealRect& screen_rect, bool t
 	}
 }
 
-void Graph1D::setData(const GraphDataP& d) {
-	if (d->axes.size() <= axis) {
-		Graph::setData(GraphDataP()); // invalid
-	} else {
-		Graph::setData(d);
-	}
-	
-}
-
 // ----------------------------------------------------------------------------- : Graph2D
 
-void Graph2D::setData(const GraphDataP& d) {
-	if (d->axes.size() <= max(axis1,axis2)) {
-		Graph::setData(GraphDataP()); // invalid
-	} else {
-		Graph::setData(d);
-		d->crossAxis(axis1,axis2,values);
-	}
+Graph2D::Graph2D(GraphDataP const& data, size_t axis1, size_t axis2)
+	: Graph(data), axis1(axis1), axis2(axis2)
+{
+	if (axis1 >= data->axes.size()) throw InternalError(_("axis1 doesn't exist"));
+	if (axis2 >= data->axes.size()) throw InternalError(_("axis2 doesn't exist"));
+	data->crossAxis(axis1,axis2,values);
 }
 
 // ----------------------------------------------------------------------------- : Bar Graph
@@ -630,8 +626,7 @@ bool ScatterGraph::findItem(const RealPoint& pos, const RealRect& screen_rect, b
 	return true;
 }
 
-void ScatterGraph::setData(const GraphDataP& d) {
-	Graph2D::setData(d);
+void ScatterGraph::init_maxima() {
 	if (!data) return;
 	if (values.empty()) return;
 	// find maximum
@@ -667,12 +662,10 @@ void ScatterGraph::setData(const GraphDataP& d) {
 
 // ----------------------------------------------------------------------------- : Scatter Plot plus
 
-void ScatterGraphPlus::setData(const GraphDataP& d) {
-	ScatterGraph::setData(d);
-	if (!data || data->axes.size() <= max(max(axis1,axis2),axis3)) {
-		data = GraphDataP(); // invalid
-		return;
-	}
+ScatterGraphPlus::ScatterGraphPlus(GraphDataP const& data, size_t axis1, size_t axis2, size_t axis3)
+	: ScatterGraph(data, axis1, axis2), axis3(axis3)
+{
+	if (axis3 >= data->axes.size()) throw InternalError(_("axis3 doesn't exist"));
 	data->crossAxis(axis1,axis2,axis3,values3D);
 }
 
@@ -726,8 +719,7 @@ void ScatterPieGraph::draw(RotatedDC& dc, const vector<int>& current, DrawLayer 
 
 // ----------------------------------------------------------------------------- : Graph Stats table
 
-void GraphStats::setData(const GraphDataP& d) {
-	Graph1D::setData(d);
+void GraphStats::calculateStats() {
 	if (!data) return;
 	// update values
 	GraphAxis& axis = axis_data();
@@ -997,10 +989,6 @@ bool GraphWithMargins::findItem(const RealPoint& pos, const RealRect& screen_rec
 	if (upside_down) { inner.y += inner.height; inner.height = -inner.height; }
 	return graph->findItem(pos, inner, tight, out);
 }
-void GraphWithMargins::setData(const GraphDataP& d) {
-	Graph::setData(d);
-	graph->setData(d);
-}
 
 // ----------------------------------------------------------------------------- : Graph Container
 
@@ -1015,12 +1003,6 @@ bool GraphContainer::findItem(const RealPoint& pos, const RealRect& screen_rect,
 	}
 	return false;
 }
-void GraphContainer::setData(const GraphDataP& d) {
-	Graph::setData(d);
-	FOR_EACH(g, items) {
-		g->setData(d);
-	}
-}
 void GraphContainer::add(const GraphP& graph) {
 	items.push_back(graph);
 }
@@ -1033,50 +1015,54 @@ GraphControl::GraphControl(Window* parent, int id)
 	, layout(GRAPH_TYPE_BAR)
 {}
 
-void GraphControl::setLayout(GraphType type, bool force) {
-	if (!force && graph && type == layout) return;
-	GraphDataP data = graph ? graph->getData() : GraphDataP();
+void GraphControl::setLayout(GraphType type, GraphDataP_nullable const& new_data) {
+	if (!new_data) {
+		if (!graph) return;
+		if (type == layout) return;
+	} else {
+		current_item.clear(); // TODO : preserve selection
+	}
+	GraphDataP data = new_data ? from_non_null(new_data) : graph->getData();
 	switch (type) {
 		case GRAPH_TYPE_BAR: {
-			intrusive_ptr<GraphContainer> combined(new GraphContainer());
-			combined->add(intrusive(new GraphValueAxis(0, true)));
-			combined->add(intrusive(new GraphLabelAxis(0, HORIZONTAL)));
-			combined->add(intrusive(new BarGraph(0)));
-			combined->add(intrusive(new GraphStats(0, ALIGN_TOP_RIGHT)));
+			intrusive_ptr_non_null<GraphContainer> combined = intrusive(new GraphContainer(data));
+			combined->add(intrusive(new GraphValueAxis(data, 0, true)));
+			combined->add(intrusive(new GraphLabelAxis(data, 0, HORIZONTAL)));
+			combined->add(intrusive(new BarGraph(data, 0)));
+			combined->add(intrusive(new GraphStats(data, 0, ALIGN_TOP_RIGHT)));
 			graph = intrusive(new GraphWithMargins(combined, 23,8,7,20));
 			break;
 		} case GRAPH_TYPE_PIE: {
-			intrusive_ptr<GraphContainer> combined(new GraphContainer());
-			combined->add(intrusive(new GraphWithMargins(intrusive(new PieGraph(0)), 0,0,120,0)));
-			combined->add(intrusive(new GraphLegend(0, ALIGN_TOP_RIGHT, false)));
+			intrusive_ptr_non_null<GraphContainer> combined = intrusive(new GraphContainer(data));
+			combined->add(intrusive(new GraphWithMargins(intrusive(new PieGraph(data, 0)), 0,0,120,0)));
+			combined->add(intrusive(new GraphLegend(data, 0, ALIGN_TOP_RIGHT, false)));
 			graph = intrusive(new GraphWithMargins(combined, 20,20,20,20));
 			break;
 		} case GRAPH_TYPE_STACK: {
-			intrusive_ptr<GraphContainer> combined(new GraphContainer());
-			combined->add(intrusive(new GraphValueAxis(0, false)));
-			combined->add(intrusive(new GraphLabelAxis(0, HORIZONTAL)));
-			combined->add(intrusive(new BarGraph2D(0,1)));
-			combined->add(intrusive(new GraphLegend(1, ALIGN_TOP_RIGHT, true)));
+			intrusive_ptr_non_null<GraphContainer> combined = intrusive(new GraphContainer(data));
+			combined->add(intrusive(new GraphValueAxis(data, 0, false)));
+			combined->add(intrusive(new GraphLabelAxis(data, 0, HORIZONTAL)));
+			combined->add(intrusive(new BarGraph2D(data, 0,1)));
+			combined->add(intrusive(new GraphLegend(data, 1, ALIGN_TOP_RIGHT, true)));
 			graph = intrusive(new GraphWithMargins(combined, 23,8,7,20));
 			break;
 		} case GRAPH_TYPE_SCATTER: {
-			intrusive_ptr<GraphContainer> combined(new GraphContainer());
-			combined->add(intrusive(new GraphLabelAxis(0, HORIZONTAL, false, DRAW_LINES_MID)));
-			combined->add(intrusive(new GraphLabelAxis(1, VERTICAL,   false, DRAW_LINES_MID)));
-			combined->add(intrusive(new ScatterGraph(0,1)));
+			intrusive_ptr_non_null<GraphContainer> combined = intrusive(new GraphContainer(data));
+			combined->add(intrusive(new GraphLabelAxis(data, 0, HORIZONTAL, false, DRAW_LINES_MID)));
+			combined->add(intrusive(new GraphLabelAxis(data, 1, VERTICAL,   false, DRAW_LINES_MID)));
+			combined->add(intrusive(new ScatterGraph(data, 0,1)));
 			graph = intrusive(new GraphWithMargins(combined, 80,8,7,20));
 			break;
 		} case GRAPH_TYPE_SCATTER_PIE: {
-			intrusive_ptr<GraphContainer> combined(new GraphContainer());
-			combined->add(intrusive(new GraphLabelAxis(0, HORIZONTAL, false, DRAW_LINES_MID)));
-			combined->add(intrusive(new GraphLabelAxis(1, VERTICAL,   false, DRAW_LINES_MID)));
-			combined->add(intrusive(new ScatterPieGraph(0,1,2)));
+			intrusive_ptr_non_null<GraphContainer> combined = intrusive(new GraphContainer(data));
+			combined->add(intrusive(new GraphLabelAxis(data, 0, HORIZONTAL, false, DRAW_LINES_MID)));
+			combined->add(intrusive(new GraphLabelAxis(data, 1, VERTICAL,   false, DRAW_LINES_MID)));
+			combined->add(intrusive(new ScatterPieGraph(data, 0,1,2)));
 			graph = intrusive(new GraphWithMargins(combined, 80,8,7,20));
 			break;
 		} default:
-			graph = GraphP();
+			graph = GraphP_nullable();
 	}
-	if (data && graph) graph->setData(data);
 	layout = type;
 }
 
@@ -1084,19 +1070,9 @@ GraphType GraphControl::getLayout() const {
 	return layout;
 }
 
-void GraphControl::setData(const GraphDataPre& data) {
-	setData(intrusive(new GraphData(data)));
-}
-void GraphControl::setData(const GraphDataP& data) {
-	if (graph) {
-		graph->setData(data);
-		current_item.clear(); // TODO : preserve selection
-	}
-	Refresh(false);
-}
-GraphDataP GraphControl::getData() const {
+GraphDataP_nullable GraphControl::getData() const {
 	if (graph) return graph->getData();
-	else       return GraphDataP();
+	else       return GraphDataP_nullable();
 }
 
 size_t GraphControl::getDimensionality() const {

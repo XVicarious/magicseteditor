@@ -61,7 +61,7 @@ class PackageChoiceValue : public Value {
 	ValueType package_name;	///< The selected package
 	
 	/// Get the package (if it is set)
-	PackagedP getPackage() const;
+	PackagedP_nullable getPackage() const;
 	
 	virtual bool update(Context&);
 };

@@ -51,13 +51,13 @@ IMPLEMENT_REFLECTION(PackageChoiceStyle) {
 // ----------------------------------------------------------------------------- : PackageChoiceValue
 
 String PackageChoiceValue::toString() const {
-	PackagedP pack = getPackage();
-	if (pack.get()) return pack->short_name;
-	else      return _("");
+	PackagedP_nullable pack = getPackage();
+	if (pack) return pack->short_name;
+	else return _("");
 }
 
-PackagedP PackageChoiceValue::getPackage() const {
-	if (package_name.empty()) return nullptr;
+PackagedP_nullable PackageChoiceValue::getPackage() const {
+	if (package_name.empty()) return PackagedP_nullable();
 	else return package_manager.openAny(package_name, true);
 }
 

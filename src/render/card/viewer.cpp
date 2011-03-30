@@ -23,7 +23,7 @@ DECLARE_TYPEOF_NO_REV(IndexMap<FieldP COMMA StyleP>);
 
 // ----------------------------------------------------------------------------- : DataViewer
 
-DataViewer::DataViewer() {}
+DataViewer::DataViewer() : SetView(SetP()) {}
 DataViewer::~DataViewer() {}
 
 // ----------------------------------------------------------------------------- : Drawing
@@ -79,7 +79,7 @@ void DataViewer::drawViewer(RotatedDC& dc, ValueViewer& v) {
 void DataViewer::updateStyles(bool only_content_dependent) {
 	try {
 		if (card) {
-			set->updateStyles(card, only_content_dependent);
+			set->updateStyles(from_non_null(card), only_content_dependent);
 		} else {
 			Context& ctx = getContext();
 			FOR_EACH(v, viewers) {
@@ -131,7 +131,7 @@ Game& DataViewer::getGame() const {
 
 // ----------------------------------------------------------------------------- : Setting data
 
-void DataViewer::setCard(const CardP& card, bool refresh) {
+void DataViewer::setCard(const CardP_nullable& card, bool refresh) {
 	if (!card) return; // TODO: clear viewer?
 	StyleSheetP new_stylesheet = set->stylesheetForP(card);
 	if (!refresh && this->card == card && this->stylesheet == new_stylesheet) return; // already set
@@ -201,7 +201,7 @@ void DataViewer::setData(IndexMap<FieldP,ValueP>& values, IndexMap<FieldP,ValueP
 
 
 ValueViewerP DataViewer::makeViewer(const StyleP& style) {
-	return style->makeViewer(*this, style);
+	return style->makeViewer(*this);
 }
 
 void DataViewer::onAction(const Action& action, bool undone) {

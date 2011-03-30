@@ -28,7 +28,7 @@ class IconMenu;
 /// A panel for showing statistics on cards
 class StatsPanel : public SetWindowPanel {
   public:
-	StatsPanel(Window* parent, int id);
+	StatsPanel(Window* parent, int id, SetP const& set);
 	~StatsPanel();
 	
 	// --------------------------------------------------- : UI
@@ -42,8 +42,8 @@ class StatsPanel : public SetWindowPanel {
 	virtual void onCommand(int id);
 	
 	// --------------------------------------------------- : Selection
-	virtual CardP selectedCard() const;
-	virtual void selectCard(const CardP& card);
+	virtual CardP_nullable selectedCard() const;
+	virtual void selectCard(const CardP_nullable& card);
 	
 	// --------------------------------------------------- : Data
   private:
@@ -60,7 +60,7 @@ class StatsPanel : public SetWindowPanel {
 	FilteredCardList* card_list;
 	IconMenu*         menuGraph;
 	
-	CardP card;      ///< Selected card
+	CardP_nullable card; ///< Selected card
 	bool up_to_date; ///< Are the graph and card list up to date?
 	bool active;     ///< Is this panel selected?
 	

@@ -65,7 +65,7 @@ bool ItemList::doCut() {
 
 // ----------------------------------------------------------------------------- : ItemList : Selection (private)
 
-void ItemList::selectItem(const VoidP& item, bool focus, bool event) {
+void ItemList::selectItem(const VoidP_nullable& item, bool focus, bool event) {
 	if (item != selected_item && focus) {
 		focusNone();
 	}
@@ -76,7 +76,7 @@ void ItemList::selectItem(const VoidP& item, bool focus, bool event) {
 }
 
 void ItemList::selectItemPos(long pos, bool focus, bool force_focus) {
-	VoidP item;
+	VoidP_nullable item;
 	if ((size_t)pos < sorted_list.size()) {
 		item = getItem(pos);
 	} else if (!sorted_list.empty()) {
@@ -120,7 +120,7 @@ void ItemList::focusNone() {
 		Select(pos, false);
 	}
 }
-void ItemList::focusItem(const VoidP& item, bool focus) {
+void ItemList::focusItem(const VoidP_nullable& item, bool focus) {
 	long count = GetItemCount();
 	for (long pos = 0 ; pos < count ; ++pos) {
 		if (getItem(pos) == item) {

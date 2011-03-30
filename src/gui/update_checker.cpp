@@ -61,7 +61,7 @@ DECLARE_TYPEOF_COLLECTION(PackageDependencyP);
 #endif
 
 // The information for the latest version
-VersionDataP update_version_data;
+VersionDataP_nullable update_version_data;
 // Have we shown the update dialog?
 bool shown_dialog = false;
 // Is update checking in progress?
@@ -111,7 +111,7 @@ class CheckUpdateThread : public wxThread {
 			if (!stream) return; // failed to get data
 			// Read version data
 			// ignore errors for forwards compatability
-			VersionDataP version_data;
+			VersionDataP version_data = intrusive(new VersionData);
 			Reader reader(*stream, nullptr, _("updates"), true);
 			reader.handle(version_data);
 			// has the updates url changed?

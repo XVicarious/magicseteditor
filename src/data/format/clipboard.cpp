@@ -76,7 +76,7 @@ CardsDataObject::CardsDataObject(const SetP& set, const vector<CardP>& cards) {
 	// restore cards
 	for (size_t i = 0 ; i < cards.size() ; ++i) {
 		if (has_styling[i]) {
-			cards[i]->stylesheet = StyleSheetP();
+			cards[i]->stylesheet = StyleSheetP_nullable();
 		}
 	}
 	SetFormat(format);
@@ -132,11 +132,11 @@ KeywordDataObject::KeywordDataObject() {
 	SetFormat(format);
 }
 
-KeywordP KeywordDataObject::getKeyword(const SetP& set) {
-	KeywordP keyword(new Keyword());
+KeywordP_nullable KeywordDataObject::getKeyword(const SetP& set) {
+	KeywordP keyword = intrusive(new Keyword());
 	WrappedKeyword data = { set->game.get(), set->game->name(), keyword};
 	deserialize_from_clipboard(data, *set, GetText());
-	if (data.game_name != set->game->name()) return KeywordP(); // Keyword is from a different game
+	if (data.game_name != set->game->name()) return KeywordP_nullable(); // Keyword is from a different game
 	else                                     return keyword;
 }
 

@@ -35,7 +35,7 @@ DECLARE_TYPEOF_COLLECTION(CardListBase*);
 DEFINE_EVENT_TYPE(EVENT_CARD_SELECT);
 DEFINE_EVENT_TYPE(EVENT_CARD_ACTIVATE);
 
-CardP CardSelectEvent::getCard() const {
+CardP_nullable CardSelectEvent::getCard() const {
 	return getTheCardList()->getCard();
 }
 
@@ -51,11 +51,13 @@ CardListBase* CardSelectEvent::getTheCardList() const {
 
 vector<CardListBase*> CardListBase::card_lists;
 
-CardListBase::CardListBase(Window* parent, int id, long additional_style)
+CardListBase::CardListBase(Window* parent, int id, SetP const& set, long additional_style)
 	: ItemList(parent, id, additional_style, true)
+	, SetView(set)
 {
 	// add to the list of card lists
 	card_lists.push_back(this);
+	rebuild();
 }
 
 CardListBase::~CardListBase() {
@@ -205,8 +207,8 @@ bool CardListBase::compareItems(void* a, void* b) const {
 	if (cmp != 0) return cmp < 0;
 	// equal values, compare alternate sort key
 	if (alternate_sort_field) {
-		ValueP va = reinterpret_cast<Card*>(a)->data[alternate_sort_field];
-		ValueP vb = reinterpret_cast<Card*>(b)->data[alternate_sort_field];
+		ValueP va = reinterpret_cast<Card*>(a)->data[from_non_null(alternate_sort_field)];
+		ValueP vb = reinterpret_cast<Card*>(b)->data[from_non_null(alternate_sort_field)];
 		int cmp = smart_compare( va->getSortKey(), vb->getSortKey() );
 		if (cmp != 0) return cmp < 0;
 	}
@@ -256,7 +258,7 @@ void CardListBase::rebuild() {
 		++i;
 	}
 	// determine alternate sortImageFieldP ImageCardList::findImageField() {
-	alternate_sort_field = FieldP();
+	alternate_sort_field = FieldP_nullable();
 	FOR_EACH(f, set->game->card_fields) {
 		if (f->identifying) {
 			alternate_sort_field = f;

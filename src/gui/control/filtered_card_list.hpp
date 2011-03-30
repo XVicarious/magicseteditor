@@ -13,14 +13,14 @@
 #include <gui/control/card_list.hpp>
 #include <data/filter.hpp>
 
-typedef intrusive_ptr<Filter<Card> > CardListFilterP;
+typedef intrusive_ptr_non_null<Filter<Card> > CardListFilterP;
 
 // ----------------------------------------------------------------------------- : FilteredCardList
 
 /// A card list that lists a subset of the cards in the set
 class FilteredCardList : public CardListBase {
   public:
-	FilteredCardList(Window* parent, int id, long additional_style = 0);
+	FilteredCardList(Window* parent, int id, SetP const& set, long additional_style = 0);
 	
 	/// Change the filter to use
 	void setFilter(const CardListFilterP& filter);

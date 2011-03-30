@@ -21,7 +21,7 @@ class SymmetryMoveAction;
 class SymbolSymmetryEditor : public SymbolEditorBase {
   public:
 	/** The symmetry parameter is optional, if it is not set, then only new ones can be created */
-	SymbolSymmetryEditor(SymbolControl* control, const SymbolSymmetryP& symmetry);
+	SymbolSymmetryEditor(SymbolControl* control, const SymbolSymmetryP_nullable& symmetry);
 	
 	// --------------------------------------------------- : Drawing
 	
@@ -50,7 +50,7 @@ class SymbolSymmetryEditor : public SymbolEditorBase {
 	
 	// --------------------------------------------------- : Data
   private:
-	SymbolSymmetryP& symmetry;
+	SymbolSymmetryP_nullable& symmetry;
 	// controls
 	wxSpinCtrl* copies;
 	// Actions

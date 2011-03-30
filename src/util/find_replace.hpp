@@ -25,7 +25,7 @@ class FindInfo {
 	
 	/// Handle that a match was found.
 	/** Returns true if we are done and searching should be ended. */
-	virtual bool handle(const CardP& card, const TextValueP& value, size_t pos, bool was_selection) = 0;
+	virtual bool handle(const CardP_nullable& card, const TextValueP& value, size_t pos, bool was_selection) = 0;
 	/// Should the found text be selected?
 	virtual bool select() const { return true; }
 	/// Should the current selection also be searched?

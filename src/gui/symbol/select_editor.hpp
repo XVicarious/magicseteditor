@@ -63,7 +63,7 @@ class SymbolSelectEditor : public SymbolEditorBase {
 	
   private:
 	// The part under the mouse cursor
-	SymbolPartP highlightPart;
+	SymbolPartP_nullable highlightPart;
 	// Actions
 	// All are either owned by the symbol's action stack or equal 0
 	SymbolPartMoveAction*   moveAction;

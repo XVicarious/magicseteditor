@@ -19,8 +19,8 @@
 
 ScriptType GeneratedImage::type() const { return SCRIPT_IMAGE; }
 String GeneratedImage::typeName() const { return _TYPE_("image"); }
-GeneratedImageP GeneratedImage::toImage(const ScriptValueP& thisP) const {
-	return static_pointer_cast<GeneratedImage>(thisP);
+GeneratedImageP GeneratedImage::toImage() const {
+	return intrusive_from_this(const_cast<GeneratedImage*>(this));
 }
 
 Image GeneratedImage::generateConform(const Options& options) const {
@@ -453,16 +453,19 @@ SymbolToImage::SymbolToImage(bool is_local, const String& filename, Age age, con
 {}
 SymbolToImage::~SymbolToImage() {}
 
+SymbolP load_symbol(Package* package, String const& filename) {
+	if (filename.empty()) {
+		return default_symbol();
+	} else {
+		return package->readFile<Symbol>(filename);
+	}
+}
+
 Image SymbolToImage::generate(const Options& opt) const {
 	// TODO : use opt.width and opt.height?
 	Package* package = is_local ? opt.local_package : opt.package;
 	if (!package) throw ScriptError(_("Can only load images in a context where an image is expected"));
-	SymbolP the_symbol;
-	if (filename.empty()) {
-		the_symbol = default_symbol();
-	} else {
-		the_symbol = package->readFile<SymbolP>(filename);
-	}
+	SymbolP the_symbol = load_symbol(package,filename);
 	int size = max(100, 3*max(opt.width,opt.height));
 	if (opt.width <= 1 || opt.height <= 1) {
 		return render_symbol(the_symbol, *variation->filter, variation->border_radius, size, size);

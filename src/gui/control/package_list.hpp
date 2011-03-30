@@ -38,11 +38,11 @@ class PackageList : public GalleryList {
 	/** @pre hasSelection()
 	 *  Throws if the selection is not of type T */
 	template <typename T>
-	intrusive_ptr<T> getSelection(bool load_fully = true) const {
+	intrusive_ptr_non_null<T> getSelection(bool load_fully = true) const {
 		intrusive_ptr<T> ret = dynamic_pointer_cast<T>(packages.at(getSelectionId()).package);
 		if (!ret) throw InternalError(_("PackageList: Selected package has the wrong type"));
 		if (load_fully) ret->loadFully();
-		return ret;
+		return from_non_null(ret);
 	}
 	
 	/// Select the package with the given name, if it is not found, selects nothing
@@ -64,10 +64,11 @@ class PackageList : public GalleryList {
 	
 	// Information about a package
 	struct PackageData {
-		PackageData() {}
 		PackageData(const PackagedP& package, const Bitmap& image) : package(package), image(image) {}
 		PackagedP package;
 		Bitmap    image;
+	  private:
+		//PackageData() : package() {}
 	};
 	struct ComparePackagePosHint;
 	/// The displayed packages

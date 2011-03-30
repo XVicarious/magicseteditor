@@ -26,6 +26,15 @@ StyleSheet::StyleSheet()
 	, dependencies_initialized(false)
 {}
 
+/*StyleSheetP_nullable StyleSheet::byGameAndName_opt(const Game& game, const String& name) {
+	String full_name = game.name() + _("-") + name + _(".mse-style");
+	try {
+		return package_manager.open<StyleSheet>(full_name);
+	} catch (PackageNotFoundError& e) {
+		// TODO: log a warning somewhere?
+		return StyleSheetP_nullable();
+	}
+}*/
 StyleSheetP StyleSheet::byGameAndName(const Game& game, const String& name) {
 	/// Alternative stylesheets for game
 	static map<String, String> stylesheet_alternatives;
@@ -39,14 +48,17 @@ StyleSheetP StyleSheet::byGameAndName(const Game& game, const String& name) {
 		}
 	} catch (PackageNotFoundError& e) {
 		if (stylesheet_for_reading()) {
-			// we already have a stylesheet higher up, so just return a null pointer
-			return StyleSheetP();
+			// we already have a stylesheet higher up, so use that one
+			// this could happen when a card has its own stylesheet specified
+			// TODO: log a warning somewhere?
+			return intrusive_from_this(stylesheet_for_reading());
 		}
-		// load an alternative stylesheet
-		StyleSheetP ss = select_stylesheet(game, name);
+		// ask the user for an alternative stylesheet
+		// this is a bit ugly, since we call GUI code here.
+		StyleSheetP_nullable ss = select_stylesheet(game, name);
 		if (ss) {
 			stylesheet_alternatives[full_name] = ss->relativeFilename();
-			return ss;
+			return from_non_null(ss);
 		} else {
 			throw e;
 		}
@@ -139,3 +151,15 @@ void Reader::handle(StyleSheetP& stylesheet) {
 void Writer::handle(const StyleSheetP& stylesheet) {
 	if (stylesheet) handle(stylesheet->stylesheetName());
 }
+
+#if USE_NON_NULL_TYPE
+void Reader::handle(StyleSheetP_nullable& stylesheet) {
+	if (!game_for_reading()) {
+		throw InternalError(_("game_for_reading not set"));
+	}
+	stylesheet = StyleSheet::byGameAndName(*game_for_reading(), getValue());
+}
+void Writer::handle(const StyleSheetP_nullable& stylesheet) {
+	if (stylesheet) handle(stylesheet->stylesheetName());
+}
+#endif

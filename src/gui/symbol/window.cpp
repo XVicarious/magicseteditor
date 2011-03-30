@@ -52,7 +52,7 @@ SymbolWindow::SymbolWindow(Window* parent, ValueActionPerformer* performer)
 		try {
 			// load symbol
 			Package& package = performer->getLocalPackage();
-			symbol = package.readFile<SymbolP>(value->filename);
+			symbol = package.readFile<Symbol>(value->filename);
 		} catch (const Error& e) {
 			handle_error(e);
 		}

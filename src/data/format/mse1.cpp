@@ -46,7 +46,8 @@ SetP MSE1FileFormat::importSet(const String& filename) {
 		wxTextInputStream file(f);
 	#endif
 	// create set
-	SetP set(new Set(Game::byName(_("magic"))));
+	SetP set = intrusive(new Set);
+	set->game = Game::byName(_("magic"));
 	
 	// file version check
 	String format = file.ReadLine();
@@ -85,7 +86,6 @@ SetP MSE1FileFormat::importSet(const String& filename) {
 	}
 	
 	// read cards
-	CardP current_card;
 	while (!f.Eof()) {
 		read_mse1_card(*set, f, file);
 	}
@@ -96,7 +96,7 @@ SetP MSE1FileFormat::importSet(const String& filename) {
 }
 
 void read_mse1_card(Set& set, wxFileInputStream& f, wxTextInputStream& file) {
-	CardP card(new Card(*set.game));
+	CardP card = intrusive(new Card(*set.game));
 	while (!f.Eof()) {
 		// read a line
 		String line = file.ReadLine();

@@ -67,7 +67,7 @@ template <> void GetMember::handle(const intrusive_ptr<SymbolFilter>& f) {
 }
 
 template <>
-intrusive_ptr<SymbolFilter> read_new<SymbolFilter>(Reader& reader) {
+SymbolFilterP read_new<SymbolFilter>(Reader& reader) {
 	// there must be a fill type specified
 	String fill_type;
 	reader.handle(_("fill_type"), fill_type);

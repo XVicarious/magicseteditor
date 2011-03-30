@@ -15,7 +15,7 @@
 #include <data/filter.hpp>
 #include <data/set.hpp>
 
-typedef intrusive_ptr<Filter<Keyword> > KeywordListFilterP;
+typedef intrusive_ptr_non_null<Filter<Keyword> > KeywordListFilterP;
 
 // ----------------------------------------------------------------------------- : Events
 
@@ -28,8 +28,8 @@ DECLARE_EVENT_TYPE(EVENT_KEYWORD_SELECT, <not used>)
 
 /// The event of selecting a keyword
 struct KeywordSelectEvent : public wxCommandEvent {
-	KeywordP keyword; ///< The selected keyword
-	inline KeywordSelectEvent(const KeywordP& keyword)
+	KeywordP_nullable keyword; ///< The selected keyword
+	inline KeywordSelectEvent(const KeywordP_nullable& keyword)
 		: wxCommandEvent(EVENT_KEYWORD_SELECT), keyword(keyword)
 	{}
 };
@@ -39,7 +39,7 @@ struct KeywordSelectEvent : public wxCommandEvent {
 /// A control that lists the keywords in a set and its game
 class KeywordList : public ItemList, public SetView {
   public:
-	KeywordList(Window* parent, int id, long additional_style = 0);
+	KeywordList(Window* parent, int id, SetP const& set, long additional_style = 0);
 	~KeywordList();
 	
 	// --------------------------------------------------- : Set stuff
@@ -51,7 +51,7 @@ class KeywordList : public ItemList, public SetView {
 	
 	// --------------------------------------------------- : Selection
 	
-	inline KeywordP getKeyword() const             { return static_pointer_cast<Keyword>(selected_item); }
+	inline KeywordP_nullable getKeyword() const             { return static_pointer_cast<Keyword>(selected_item); }
 	inline void     setKeyword(const KeywordP& kw) { selectItem(kw, true, false); }
 	
 	/// Change the filter to use, can be null

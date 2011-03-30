@@ -35,7 +35,7 @@ class SetScriptContext {
 	/// Get a context to use for the set, for a given stylesheet
 	Context& getContext(const StyleSheetP&);
 	/// Get a context to use for the set, for a given card
-	Context& getContext(const CardP&);
+	Context& getContext(const CardP_nullable&);
 	
   protected:
 	Set&                            set;		///< Set for which we are managing scripts
@@ -82,15 +82,15 @@ class SetScriptManager : public SetScriptContext, public ActionListener {
 	void updateStyles(Context& ctx, const IndexMap<FieldP,StyleP>& styles, bool only_content_dependent);
 	/// Updates scripts, starting at some value
 	/** if the value changes any dependend values are updated as well */
-	void updateValue(Value& value, const CardP& card);
+	void updateValue(Value& value, const CardP_nullable& card);
 	// Update all values with a specific dependency
-	void updateAllDependend(const vector<Dependency>& dependent_scripts, const CardP& card = CardP());
+	void updateAllDependend(const vector<Dependency>& dependent_scripts, const CardP_nullable& card = CardP_nullable());
 	
 	// Something that needs to be updated
 	struct ToUpdate {
-		ToUpdate(Value* value, CardP card) : value(value), card(card) {}
+		inline ToUpdate(Value* value, CardP_nullable card) : value(value), card(card) {}
 		Value* value;  ///< value to update
-		CardP  card;   ///< card the value is in, or CadP() if it is not a card field
+		CardP_nullable card;   ///< card the value is in, or null if it is not a card field
 	};
 	/// Update all things in to_update, and things that depent on them, etc.
 	/** Only update things that are older than starting_age. */
@@ -98,7 +98,7 @@ class SetScriptManager : public SetScriptContext, public ActionListener {
 	/// Update a value given by a ToUpdate object, and add things depending on it to to_update
 	void updateToUpdate(const ToUpdate& u, deque<ToUpdate>& to_update, Age starting_age);
 	/// Schedule all things in deps to be updated by adding them to to_update
-	void alsoUpdate(deque<ToUpdate>& to_update, const vector<Dependency>& deps, const CardP& card);
+	void alsoUpdate(deque<ToUpdate>& to_update, const vector<Dependency>& deps, const CardP_nullable& card);
 	
 	/// Delayed update for (bitmask)...
 	enum Delay

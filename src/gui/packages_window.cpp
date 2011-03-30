@@ -108,11 +108,11 @@ class PackageInfoPanel : public wxPanel {
   public:
 	PackageInfoPanel(Window* parent);
 	
-	void setPackage(const InstallablePackageP& package);
+	void setPackage(const InstallablePackageP_nullable& package);
 	
 	virtual wxSize DoGetBestSize() const;
   private:
-	InstallablePackageP package;
+	InstallablePackageP_nullable package;
 	
 	DECLARE_EVENT_TABLE();
 	
@@ -124,7 +124,7 @@ PackageInfoPanel::PackageInfoPanel(Window* parent)
 	: wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_THEME)
 {}
 
-void PackageInfoPanel::setPackage(const InstallablePackageP& package) {
+void PackageInfoPanel::setPackage(const InstallablePackageP_nullable& package) {
 	this->package = package;
 	Refresh(false);
 }
@@ -292,7 +292,7 @@ void PackagesWindow::onActionChange(wxCommandEvent& ev) {
 		                  : PACKAGE_ACT_NOTHING;
 		act = act | where;
 		// set action
-		set_package_action(installable_packages, package, act);
+		set_package_action(installable_packages, from_non_null(package), act);
 		package_list->Refresh(false);
 		UpdateWindowUI(wxUPDATE_UI_RECURSE);
 	}

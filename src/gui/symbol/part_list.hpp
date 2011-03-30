@@ -47,12 +47,12 @@ class SymbolPartList : public wxScrolledWindow, public SymbolView {
 	SymbolPartsSelection& selection; ///< Store selection here
 	int number_of_items;
 	
-	SymbolPartP drag;
-	SymbolGroupP drag_parent, drop_parent;
+	SymbolPartP_nullable drag;
+	SymbolGroupP_nullable drag_parent, drop_parent;
 	size_t drag_position, drop_position;
 	bool drop_inside; // drop inside the drop parent, not at a specific position
 	
-	SymbolPartP typing_in;
+	SymbolPartP_nullable typing_in;
 	size_t cursor;
 	
 	wxImageList state_icons;
@@ -86,12 +86,12 @@ class SymbolPartList : public wxScrolledWindow, public SymbolView {
 	void updatePart(const set<SymbolPartP>& parts, int& i, bool parent_updated, const SymbolPartP& part);
 	
 	/// find item by position
-	SymbolPartP findItem(int i, int x) const;
-	static SymbolPartP findItem(int& i, int x, const SymbolPartP& part);
+	SymbolPartP_nullable findItem(int i, int x) const;
+	static SymbolPartP_nullable findItem(int& i, int x, const SymbolPartP& part);
 	
 	/// parent of 'of' and the position of 'of' in that parent
 	void findParent(const SymbolPart& of, SymbolGroupP& parent_out, size_t& pos_out);
-	static bool findParent(const SymbolPart& of, const SymbolGroupP& in, SymbolGroupP& parent_out, size_t& pos_out);
+	static bool findParent(const SymbolPart& of, const SymbolGroupP_nullable& in, SymbolGroupP& parent_out, size_t& pos_out);
 	
 	/// Where is the drop position?
 	/**   i      = index before which the cursor is

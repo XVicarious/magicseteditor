@@ -35,7 +35,7 @@ class AutoReplaceList : public ItemList {
 	GameSettings& gs;
 
 	/// The current item
-	inline AutoReplaceP getSelected() const { return static_pointer_cast<AutoReplace>(selected_item); }
+	inline AutoReplaceP_nullable getSelected() const { return static_pointer_cast<AutoReplace>(selected_item); }
 
 	/// Add an item
 	void addItem(const AutoReplaceP& item);
@@ -104,7 +104,7 @@ void AutoReplaceList::removeSelected() {
 			items.erase(items.begin() + i);
 			// select next
 			refreshList();
-			selectItem(items.empty() ? VoidP() : static_pointer_cast<IntrusivePtrVirtualBase>(items[min(i, items.size())]),
+			selectItem(items.empty() ? VoidP_nullable() : static_pointer_cast<IntrusivePtrVirtualBase>(items[min(i, items.size())]),
 			           true, true);
 			return;
 		}
@@ -256,7 +256,7 @@ void AutoReplaceWindow::refreshItem() {
 	if (in_event) return;
 	if (!use_auto_replace->GetValue()) return;
 	in_event = true;
-	AutoReplaceP ar = list->getSelected();
+	AutoReplaceP_nullable ar = list->getSelected();
 	match     ->Enable(ar && ar->custom);
 	replace   ->Enable(ar);
 	matchL    ->Enable(ar && ar->custom);
@@ -281,7 +281,7 @@ void AutoReplaceWindow::refreshItem() {
 void AutoReplaceWindow::updateItem() {
 	if (in_event) return;
 	in_event = true;
-	AutoReplaceP ar = list->getSelected();
+	AutoReplaceP_nullable ar = list->getSelected();
 	if (!ar) return;
 	ar->match      = match->GetValue();
 	ar->replace    = replace->GetValue();

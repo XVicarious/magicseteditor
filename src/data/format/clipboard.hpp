@@ -46,7 +46,7 @@ class KeywordDataObject : public wxTextDataObject {
 	KeywordDataObject(const SetP& set, const KeywordP& card);
 	
 	/// Retrieve a keyword, only if it is made with the same game as set
-	KeywordP getKeyword(const SetP& set);
+	KeywordP_nullable getKeyword(const SetP& set);
 };
 
 // ----------------------------------------------------------------------------- : Card on clipboard

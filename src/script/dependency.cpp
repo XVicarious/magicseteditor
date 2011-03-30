@@ -28,11 +28,11 @@ class DependencyDummy : public ScriptIterator {
   public:
 	virtual ScriptType type() const { return SCRIPT_DUMMY; }
 	virtual String typeName() const { return _("dummy"); }
-	virtual ScriptValueP next(ScriptValueP*) { return ScriptValueP(); }
+	virtual ScriptValueP_nullable next(ScriptValueP*) { return ScriptValueP_nullable(); }
 	virtual ScriptValueP dependencyName(const ScriptValue&, const Dependency&) const { return dependency_dummy; }
 };
 
-ScriptValueP dependency_dummy(new DependencyDummy);
+ScriptValueP dependency_dummy = intrusive(new DependencyDummy);
 
 ScriptValueP unified(const ScriptValueP& a, const ScriptValueP& b);
 
@@ -52,8 +52,8 @@ class DependencyUnion : public ScriptValue {
 	virtual ScriptValueP dependencies(Context& ctx, const Dependency& dep) const {
 		return unified( a->dependencies(ctx,dep), b->dependencies(ctx,dep));
 	}
-	virtual ScriptValueP makeIterator(ScriptValueP thisP) const {
-		return unified(a->makeIterator(thisP), b->makeIterator(thisP));
+	virtual ScriptValueP makeIterator() const {
+		return unified(a->makeIterator(), b->makeIterator());
 	}
 	virtual ScriptValueP dependencyMember(const String& name, const Dependency& dep) const {
 		return unified(a->dependencyMember(name,dep), b->dependencyMember(name,dep));
@@ -161,9 +161,9 @@ ScriptValueP Context::dependencies(const Dependency& dep, const Script& script) 
 				}
 				// unify bindings
 				FOR_EACH(v, j->bindings) {
-					ScriptValueP old_value = variables[v.variable].value;
+					ScriptValueP_nullable old_value = variables[v.variable].value;
 					if (old_value) {
-						setVariable(v.variable, unified(old_value, v.value.value) );
+						setVariable(v.variable, unified(from_non_null(old_value), from_non_null(v.value.value)) );
 					}
 				}
 				delete j;
@@ -197,7 +197,7 @@ ScriptValueP Context::dependencies(const Dependency& dep, const Script& script) 
 						Jump* jumpTo = jumps.top(); jumps.pop();
 						instr = jumpTo->target;
 						FOR_EACH(s, jumpTo->stack_top) stack.push_back(s);
-						FOR_EACH(b, jumpTo->bindings)  setVariable(b.variable, b.value.value);
+						FOR_EACH(b, jumpTo->bindings)  setVariable(b.variable, from_non_null(b.value.value));
 						delete jumpTo;
 					} else {
 						// backward jump: just follow it, someone else (I_LOOP) will make sure
@@ -234,11 +234,11 @@ ScriptValueP Context::dependencies(const Dependency& dep, const Script& script) 
 				// Loop over a container, push next value or jump (almost as normal)
 				case I_LOOP: {
 					ScriptValueP& it = stack[stack.size() - 2]; // second element of stack
-					ScriptValueP val = it->next();
+					ScriptValueP_nullable val = it->next();
 					if (val) {
 						// we have not been through the body
 						it = dependency_dummy; // invalidate iterator, so we loop only once
-						stack.push_back(val);
+						stack.push_back(from_non_null(val));
 					} else {
 						// we have been through the body once already
 						stack.erase(stack.end() - 2); // remove iterator
@@ -249,11 +249,11 @@ ScriptValueP Context::dependencies(const Dependency& dep, const Script& script) 
 				// Loop over a container, push next value or jump (almost as normal)
 				case I_LOOP_WITH_KEY: {
 					ScriptValueP& it = stack[stack.size() - 2]; // second element of stack
-					ScriptValueP key;
-					ScriptValueP val = it->next(&key);
+					ScriptValueP key = null_for_guaranteed_assignment<ScriptValue>();
+					ScriptValueP_nullable val = it->next(&key);
 					if (val) {
 						it = dependency_dummy; // invalidate iterator, so we loop only once
-						stack.push_back(val);
+						stack.push_back(from_non_null(val));
 						stack.push_back(key);
 					} else {
 						stack.erase(stack.end() - 2); // remove iterator
@@ -291,12 +291,12 @@ ScriptValueP Context::dependencies(const Dependency& dep, const Script& script) 
 				
 				// Get a variable (almost as normal)
 				case I_GET_VAR: {
-					ScriptValueP value = variables[i.data].value;
+					ScriptValueP_nullable value = variables[i.data].value;
 					if (!value) {
 						value = intrusive(new ScriptMissingVariable(variable_to_string((Variable)i.data))); // no errors here
 					}
 					value->dependencyThis(dep);
-					stack.push_back(value);
+					stack.push_back(from_non_null(value));
 					break;
 				}
 				// Set a variable (as normal)
@@ -310,7 +310,7 @@ ScriptValueP Context::dependencies(const Dependency& dep, const Script& script) 
 					ScriptValueP& a = stack.back();
 					switch (i.instr1) {
 						case I_ITERATOR_C:
-							a = a->makeIterator(a); // as normal
+							a = a->makeIterator(); // as normal
 							break;
 						default:
 							a = dependency_dummy;

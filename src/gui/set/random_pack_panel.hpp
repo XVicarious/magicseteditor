@@ -29,9 +29,12 @@ struct PackAmountPicker {
 	SelectableLabel* label;
 	wxSpinCtrl*      value;
 	
-	PackAmountPicker() {}
 	PackAmountPicker(wxWindow* parent, wxFlexGridSizer* sizer, const PackTypeP& pack, bool interactive);
 	void destroy(wxFlexGridSizer* sizer);
+	
+  private:
+	PackAmountPicker() : pack(null_for_stl_ctor<PackType>()) {}
+	friend class vector<PackAmountPicker>;
 };
 
 // ----------------------------------------------------------------------------- : RandomPackPanel
@@ -39,7 +42,7 @@ struct PackAmountPicker {
 /// A SetWindowPanel for creating random booster packs
 class RandomPackPanel : public SetWindowPanel {
   public:
-	RandomPackPanel(Window* parent, int id);
+	RandomPackPanel(Window* parent, int id, SetP const& set);
 	~RandomPackPanel();
 	
 	// --------------------------------------------------- : UI
@@ -54,8 +57,8 @@ class RandomPackPanel : public SetWindowPanel {
 	virtual void onCommand(int id);
 	
 	// --------------------------------------------------- : Selection
-	virtual CardP selectedCard() const;
-	virtual void selectCard(const CardP& card);
+	virtual CardP_nullable selectedCard() const;
+	virtual void selectCard(const CardP_nullable& card);
 	virtual void selectionChoices(ExportCardSelectionChoices& out);
 	
 	// --------------------------------------------------- : Clipboard

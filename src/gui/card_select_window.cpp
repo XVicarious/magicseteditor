@@ -127,7 +127,7 @@ CardSelectWindow::CardSelectWindow(Window* parent, const SetP& set, const String
 	, set(set)
 {
 	// init controls
-	list = new SelectCardList(this, wxID_ANY);
+	list = new SelectCardList(this, wxID_ANY, set);
 	list->setSet(set);
 	sel_all  = new wxButton(this, ID_SELECT_ALL,  _BUTTON_("select all"));
 	sel_none = new wxButton(this, ID_SELECT_NONE, _BUTTON_("select none"));

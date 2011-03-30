@@ -31,7 +31,7 @@ class GetDefaultMember {
 	inline Version formatVersion() const { return app_version; }
 	
 	/// The result, or script_nil if the member was not found
-	inline ScriptValueP result() { return value; } 
+	inline ScriptValueP_nullable result() { return value; } 
 	
 	// --------------------------------------------------- : Handling objects
 	
@@ -55,17 +55,21 @@ class GetDefaultMember {
 	template <typename K, typename V> void handle(const DelayedIndexMaps<K,V>&) {}
 	template <typename K, typename V> void handle(const DelayedIndexMapsData<K,V>& c);
 	template <typename T>             void handle(const intrusive_ptr<T>& p) { value = to_script(p); }
+	#if USE_NON_NULL_TYPE
+	template <typename T>             void handle(const intrusive_ptr_non_null<T>& p) { value = to_script(p); }
+	void handle(const ScriptP_nullable&);
+	#endif
 	void handle(const ScriptValueP&);
 	void handle(const ScriptP&);
   private:
-	ScriptValueP  value;		///< The value we found (if any)
+	ScriptValueP_nullable value; ///< The value we found (if any)
 };
 
 // ----------------------------------------------------------------------------- : GetMember
 
 /// Find a member with a specific name using reflection
 /** The member is wrapped in a ScriptValue */
-class GetMember : private GetDefaultMember {
+class GetMember {
   public:
 	/// Construct a member getter that looks for the given name
 	GetMember(const String& name);
@@ -77,7 +81,7 @@ class GetMember : private GetDefaultMember {
 	inline Version formatVersion() const { return app_version; }
 	
 	/// The result, or script_nil if the member was not found
-	inline ScriptValueP result() { return gdm.result(); } 
+	inline ScriptValueP_nullable result() { return gdm.result(); } 
 	
 	// --------------------------------------------------- : Handling objects
 	

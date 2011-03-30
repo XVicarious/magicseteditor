@@ -52,7 +52,7 @@ class DataViewer : public SetView {
 	/// The rotation to use
 	virtual Rotation getRotation() const;
 	/// The card we are viewing, can be null
-	inline const CardP& getCard() const { return card; }
+	inline const CardP_nullable& getCard() const { return card; }
 	/// Invalidate and redraw (the area of) a single value viewer
 	virtual void redraw(const ValueViewer&) {}
 	
@@ -67,7 +67,7 @@ class DataViewer : public SetView {
 	
 	/// Display a card in this viewer
 	/** \param refresh: Always refresh, even if this card is already shown */
-	void setCard(const CardP& card, bool refresh = false);
+	void setCard(const CardP_nullable& card, bool refresh = false);
 	
 	/// Clear data
 	virtual void onChangeSet();
@@ -99,7 +99,7 @@ class DataViewer : public SetView {
 	virtual void onChangeSize() {}
 	
 	vector<ValueViewerP> viewers;	///< The viewers for the different values in the data
-	CardP card;						///< The card that is currently displayed, if any
+	CardP_nullable card;			///< The card that is currently displayed, if any
 	mutable StyleSheetP stylesheet;	///< Stylesheet being used
 };
 

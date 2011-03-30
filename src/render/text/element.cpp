@@ -164,14 +164,14 @@ struct TextElementsFromString {
 				else if (is_substr(text, tag_start, _("<atom"))) {
 					// 'atomic' indicator
 					size_t end_tag = min(end, match_close_tag(text, tag_start));
-					intrusive_ptr<AtomTextElement> e(new AtomTextElement(pos, end_tag));
+					intrusive_ptr_non_null<AtomTextElement> e = intrusive(new AtomTextElement(pos, end_tag));
 					fromString(e->elements, text, pos, end_tag, style, ctx);
 					te.elements.push_back(e);
 					pos = skip_tag(text, end_tag);
 				} else if (is_substr(text, tag_start, _( "<error"))) {
 					// error indicator
 					size_t end_tag = min(end, match_close_tag(text, tag_start));
-					intrusive_ptr<ErrorTextElement> e(new ErrorTextElement(pos, end_tag));
+					intrusive_ptr_non_null<ErrorTextElement> e = intrusive(new ErrorTextElement(pos, end_tag));
 					fromString(e->elements, text, pos, end_tag, style, ctx);
 					te.elements.push_back(e);
 					pos = skip_tag(text, end_tag);
@@ -214,14 +214,14 @@ struct TextElementsFromString {
 				// mixed symbols/text, autodetected by symbol font
 				size_t text_pos = 0;
 				size_t pos = 0;
-				FontP font;
+				FontP_nullable font;
 				while (pos < end-start) {
 					if (size_t n = style.symbol_font.font->recognizePrefix(content,pos)) {
 						// at 'pos' there are n symbol font characters
 						if (text_pos < pos) {
 							// text before it?
 							if (!font) font = makeFont(style);
-							te.elements.push_back(intrusive(new FontTextElement(content.substr(text_pos, pos-text_pos), start+text_pos, start+pos, font, what, line_break)));
+							te.elements.push_back(intrusive(new FontTextElement(content.substr(text_pos, pos-text_pos), start+text_pos, start+pos, from_non_null(font), what, line_break)));
 						}
 						te.elements.push_back(intrusive(new SymbolTextElement(content.substr(pos,n), start+pos, start+pos+n, style.symbol_font, &ctx)));
 						text_pos = pos += n;
@@ -231,7 +231,7 @@ struct TextElementsFromString {
 				}
 				if (text_pos < pos) {
 					if (!font) font = makeFont(style);
-					te.elements.push_back(intrusive(new FontTextElement(content.substr(text_pos), start+text_pos, end, font, what, line_break)));
+					te.elements.push_back(intrusive(new FontTextElement(content.substr(text_pos), start+text_pos, end, from_non_null(font), what, line_break)));
 				}
 			} else {
 				te.elements.push_back(intrusive(new FontTextElement(content, start, end, makeFont(style), what, line_break)));

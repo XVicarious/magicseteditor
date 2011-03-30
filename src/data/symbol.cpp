@@ -199,7 +199,7 @@ String SymbolShape::typeName() const {
 }
 
 SymbolPartP SymbolShape::clone() const {
-	SymbolShapeP part(new SymbolShape(*this));
+	SymbolShapeP part = intrusive(new SymbolShape(*this));
 	// also clone the control points
 	FOR_EACH(p, part->points) {
 		p = intrusive(new ControlPoint(*p));
@@ -241,7 +241,7 @@ String SymbolSymmetry::typeName() const {
 }
 
 SymbolPartP SymbolSymmetry::clone() const {
-	SymbolSymmetryP part(new SymbolSymmetry(*this));
+	SymbolSymmetryP part = intrusive(new SymbolSymmetry(*this));
 	// also clone the parts inside
 	FOR_EACH(p, part->parts) {
 		p = p->clone();
@@ -300,7 +300,7 @@ String SymbolGroup::typeName() const {
 }
 
 SymbolPartP SymbolGroup::clone() const {
-	SymbolGroupP part(new SymbolGroup(*this));
+	SymbolGroupP part = intrusive(new SymbolGroup(*this));
 	// also clone the parts inside
 	FOR_EACH(p, part->parts) {
 		p = p->clone();
@@ -377,17 +377,23 @@ SymbolP default_symbol() {
 
 // ----------------------------------------------------------------------------- : SymbolView
 
-SymbolView::SymbolView() {}
+SymbolView::SymbolView(SymbolP const& symbol) : symbol(symbol) {
+	assert(symbol);
+	if (symbol) symbol->actions.addListener(this);
+	// there is no point in calling onChangeSymbol(), because virtual functions don't work in ctors
+}
 
 SymbolView::~SymbolView() {
+	assert(symbol);
 	if (symbol) symbol->actions.removeListener(this);
 }
 
-void SymbolView::setSymbol(const SymbolP& newSymbol) {
+void SymbolView::setSymbol(const SymbolP& new_symbol) {
 	// no longer listening to old symbol
+	assert(symbol);
 	if (symbol) symbol->actions.removeListener(this);
-	symbol = newSymbol;
 	// start listening to new symbol
+	symbol = new_symbol;
 	if (symbol) symbol->actions.addListener(this);
 	onChangeSymbol();
 }

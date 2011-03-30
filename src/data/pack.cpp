@@ -391,14 +391,14 @@ PackInstance& PackGenerator::get(const String& name) {
 	} else {
 		FOR_EACH_CONST(type, set->pack_types) {
 			if (type->name == name) {
-				instance = PackInstanceP(new PackInstance(*type,*this));
+				instance = intrusive(new PackInstance(*type,*this));
 				max_depth = max(max_depth, instance->get_depth());
 				return *instance;
 			}
 		}
 		FOR_EACH_CONST(type, set->game->pack_types) {
 			if (type->name == name) {
-				instance = PackInstanceP(new PackInstance(*type,*this));
+				instance = intrusive(new PackInstance(*type,*this));
 				max_depth = max(max_depth, instance->get_depth());
 				return *instance;
 			}

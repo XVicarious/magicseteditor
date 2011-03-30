@@ -138,7 +138,7 @@ bool SymbolBasicShapeEditor::isEditing() { return drawing; }
 // ----------------------------------------------------------------------------- : Generating shapes
 
 void SymbolBasicShapeEditor::stopActions() {
-	shape = SymbolShapeP();
+	shape = SymbolShapeP_nullable();
 	drawing = false;
 	switch (mode) {
 		case ID_SHAPE_CIRCLE:

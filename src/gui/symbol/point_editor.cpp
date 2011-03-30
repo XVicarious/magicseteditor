@@ -261,7 +261,7 @@ void SymbolPointEditor::onLeftDClick(const Vector2D& pos, wxMouseEvent& ev) {
 	} else if (hovering == SELECTED_HANDLE && hover_handle.handle == HANDLE_MAIN) {
 		// Delete point
 		selected_points.clear();
-		selectPoint(hover_handle.point, false);
+		selectPoint(from_non_null(hover_handle.point), false);
 		addAction(control_point_remove_action(part, selected_points));
 		selected_points.clear();
 		selection = SELECTED_NONE;
@@ -413,7 +413,7 @@ void SymbolPointEditor::selectPoint(const ControlPointP& point, bool toggle) {
 void SymbolPointEditor::selectHandle(const SelectedHandle& h, const wxMouseEvent& keystate) {
 	if (h.handle == HANDLE_MAIN) {
 		selection = SELECTED_POINTS;
-		selectPoint(h.point, keystate.ShiftDown());
+		selectPoint(from_non_null(h.point), keystate.ShiftDown());
 	} else {
 		selection = SELECTED_HANDLE;
 		selected_handle = h;

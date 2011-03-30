@@ -28,7 +28,7 @@ class ConsoleMessage : public IntrusivePtrBase<ConsoleMessage> {
 	MessageType type;
 	String text; // string message
 	Bitmap bitmap; // image message instead of string
-	ScriptValueP value; // other valued message (images? cards?)
+	ScriptValueP_nullable value; // other valued message (images? cards?)
 	// location of error messages
 	String source_file;
 	int line_number;
@@ -290,8 +290,8 @@ END_EVENT_TABLE()
 
 // ----------------------------------------------------------------------------- : ConsolePanel
 
-ConsolePanel::ConsolePanel(Window* parent, int id)
-	: SetWindowPanel(parent, id)
+ConsolePanel::ConsolePanel(Window* parent, int id, const SetP& set)
+	: SetWindowPanel(parent, id, set)
 	, is_active_window(false)
 	, blinker_state(0)
 	, blinker_timer(this)
@@ -387,8 +387,8 @@ void ConsolePanel::exec(String const& command) {
 	try {
 		// parse command
 		vector<ScriptParseError> errors;
-		ScriptP script = parse(command,nullptr,false,errors);
-		if (!errors.empty()) {
+		ScriptP_nullable script = parse(command,nullptr,false,errors);
+		if (!errors.empty() || !script) {
 			FOR_EACH(error,errors) {
 				// TODO: also squiglify the input?
 				messages->add_message(MESSAGE_ERROR,error.what());
@@ -398,7 +398,7 @@ void ConsolePanel::exec(String const& command) {
 		// execute command
 		//WITH_DYNAMIC_ARG(export_info, &ei); // TODO: allow image export
 		Context& ctx = set->getContext();
-		ScriptValueP result = ctx.eval(*script,false);
+		ScriptValueP result = ctx.eval(*from_non_null(script),false);
 		get_pending_errors();
 		// show result
 		ConsoleMessageP message = intrusive(new ConsoleMessage(MESSAGE_OUTPUT));
@@ -408,7 +408,7 @@ void ConsolePanel::exec(String const& command) {
 		ScriptType type = result->type();
 		if (type == SCRIPT_IMAGE) {
 			GeneratedImage::Options options(0,0, set->stylesheet.get(), set.get());
-			wxImage image = result->toImage(result)->generate(options);
+			wxImage image = result->toImage()->generate(options);
 			message->bitmap = wxBitmap(image);
 		} else if (type == SCRIPT_COLOR) {
 			message->text = result->toCode();

@@ -94,7 +94,7 @@ class DownloadableInstaller : public IntrusivePtrBase<DownloadableInstaller> {
 	DownloadableInstaller(const InstallerP& installer);
 	~DownloadableInstaller();
 	
-	InstallerP installer;      ///< The installer, if it is loaded
+	InstallerP_nullable installer; ///< The installer, if it is loaded
 	String     installer_url;  ///< The URL where the installer can be found
 	String     installer_file; ///< The temp file where the installer can be found (after downloading)
 	bool       downloadable;   ///< Is the installer downloadable (in)directly from that url?
@@ -141,8 +141,8 @@ class InstallablePackage : public IntrusivePtrVirtualBase {
 	InstallablePackage(const PackageDescriptionP&, const PackageVersionP&);
 	
 	PackageDescriptionP    description; ///< The details of the package. Either from the installed package or from an installer
-	PackageVersionP        installed;   ///< The information of the installed package (if installed)
-	DownloadableInstallerP installer;   ///< The installer to install from (if updates are available)
+	PackageVersionP_nullable        installed;   ///< The information of the installed package (if installed)
+	DownloadableInstallerP_nullable installer;   ///< The installer to install from (if updates are available)
 	PackageStatus          status;      ///< Status of installation
 	PackageAction          action;      ///< What to do with this package?
 	

@@ -31,7 +31,7 @@ class ChoiceField : public Field {
 	DECLARE_FIELD_TYPE(Choice);
 	
 	class Choice;
-	typedef intrusive_ptr<Choice> ChoiceP;
+	typedef intrusive_ptr_non_null<Choice> ChoiceP;
 	
 	ChoiceP choices;				///< A choice group of possible choices
 	OptionalScript script;			///< Script to apply to all values

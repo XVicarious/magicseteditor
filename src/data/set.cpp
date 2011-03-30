@@ -33,14 +33,6 @@ Set::Set()
 	, script_manager(new SetScriptManager(*this))
 {}
 
-Set::Set(const GameP& game)
-	: game(game)
-	, vcs (intrusive(new VCS()))
-	, script_manager(new SetScriptManager(*this))
-{
-	data.init(game->set_fields);
-}
-
 Set::Set(const StyleSheetP& stylesheet)
 	: game(stylesheet->game)
 	, stylesheet(stylesheet)
@@ -57,7 +49,7 @@ Context& Set::getContext() {
 	assert(wxThread::IsMain());
 	return script_manager->getContext(stylesheet);
 }
-Context& Set::getContext(const CardP& card) {
+Context& Set::getContext(const CardP_nullable& card) {
 	assert(wxThread::IsMain());
 	return script_manager->getContext(card);
 }
@@ -90,19 +82,18 @@ Context& Set::getContextForThumbnails(const StyleSheetP& stylesheet) {
 	return thumbnail_script_context->getContext(stylesheet);
 }
 
-const StyleSheet& Set::stylesheetFor(const CardP& card) {
-	if (card && card->stylesheet) return *card->stylesheet;
-	else                          return *stylesheet;
+const StyleSheet& Set::stylesheetFor(const CardP_nullable& card) {
+	return *stylesheetForP(card);
 }
-StyleSheetP Set::stylesheetForP(const CardP& card) {
-	if (card && card->stylesheet) return card->stylesheet;
+StyleSheetP Set::stylesheetForP(const CardP_nullable& card) {
+	if (card && card->stylesheet) return from_non_null(card->stylesheet);
 	else                          return stylesheet;
 }
 
 IndexMap<FieldP, ValueP>& Set::stylingDataFor(const StyleSheet& stylesheet) {
 	return styling_data.get(stylesheet.name(), stylesheet.styling_fields);
 }
-IndexMap<FieldP, ValueP>& Set::stylingDataFor(const CardP& card) {
+IndexMap<FieldP, ValueP>& Set::stylingDataFor(const CardP_nullable& card) {
 	if (card && card->has_styling) return card->styling_data;
 	else                           return stylingDataFor(stylesheetFor(card));
 }
@@ -260,7 +251,7 @@ void reflect_set_info_get_member(GetMember& reflector, const IndexMap<FieldP, Va
 	REFLECT_NAMELESS(data);
 }
 
-int Set::positionOfCard(const CardP& card, const ScriptValueP& order_by, const ScriptValueP& filter) {
+int Set::positionOfCard(const CardP& card, const ScriptValueP_nullable& order_by, const ScriptValueP_nullable& filter) {
 	// TODO : Lock the map?
 	assert(order_by);
 	OrderCacheP& order = order_cache[make_pair(order_by,filter)];
@@ -284,9 +275,9 @@ int Set::positionOfCard(const CardP& card, const ScriptValueP& order_by, const S
 	}
 	return order->find(card);
 }
-int Set::numberOfCards(const ScriptValueP& filter) {
+int Set::numberOfCards(const ScriptValueP_nullable& filter) {
 	if (!filter) return (int)cards.size();
-	map<ScriptValueP,int>::const_iterator it = filter_cache.find(filter);
+	map<ScriptValueP,int>::const_iterator it = filter_cache.find(from_non_null(filter));
 	if (it !=filter_cache.end()) {
 		return it->second;
 	} else {
@@ -294,7 +285,7 @@ int Set::numberOfCards(const ScriptValueP& filter) {
 		FOR_EACH_CONST(c, cards) {
 			if (filter->eval(getContext(c))->toBool()) ++n;
 		}
-		filter_cache.insert(make_pair(filter,n));
+		filter_cache.insert(make_pair(from_non_null(filter),n));
 		return n;
 	}
 }
@@ -305,7 +296,13 @@ void Set::clearOrderCache() {
 
 // ----------------------------------------------------------------------------- : SetView
 
-SetView::SetView() {}
+SetView::SetView(const SetP& set) : set(set) {
+	//%assert(set);
+	if (set) {
+		set->actions.addListener(this);
+		// there is no point in calling onChangeSet(), because virtual functions don't work in ctors
+	}
+}
 
 SetView::~SetView() {
 	if (set) set->actions.removeListener(this);

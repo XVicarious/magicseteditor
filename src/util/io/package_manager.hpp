@@ -122,11 +122,11 @@ class PackageManager {
 	
 	/// Open a package with the specified name (including extension)
 	template <typename T>
-	intrusive_ptr<T> open(const String& name) {
+	intrusive_ptr_non_null<T> open(const String& name) {
 		PackagedP p = openAny(name);
 		intrusive_ptr<T> typedP = dynamic_pointer_cast<T>(p);
 		if (typedP) {
-			return typedP;
+			return from_non_null(typedP);
 		} else {
 			throw InternalError(format_string(_("Package %s loaded as wrong type"),name));
 		}

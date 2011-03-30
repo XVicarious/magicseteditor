@@ -19,13 +19,13 @@ DECLARE_POINTER_TYPE(StyleSheet);
 // ----------------------------------------------------------------------------- : NewSetWindow
 
 /// Show the new set window, return the new set, if any
-SetP new_set_window(Window* parent);
+SetP_nullable new_set_window(Window* parent);
 
 /// "Create a new set" dialog. First select game, then matching style.
 class NewSetWindow : public wxDialog {
   public:
 	/// The newly created set, if any
-	SetP set;
+	SetP_nullable set;
 	
 	NewSetWindow(Window* parent);
 	
@@ -56,13 +56,13 @@ class NewSetWindow : public wxDialog {
 // very similair, so in the same file
 
 /// Show the select stylesheet window, return the selected stylesheet, if any
-StyleSheetP select_stylesheet(const Game& game, const String& failed_name);
+StyleSheetP_nullable select_stylesheet(const Game& game, const String& failed_name);
 
 /// "Create a new set" dialog. First select game, then matching style.
 class SelectStyleSheetWindow : public wxDialog {
   public:
 	/// The selected stylesheet, if any
-	StyleSheetP stylesheet;
+	StyleSheetP_nullable stylesheet;
 	
 	SelectStyleSheetWindow(Window* parent, const Game& game, const String& failed_name);
 	

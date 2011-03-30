@@ -29,7 +29,7 @@ void SymbolValueViewer::draw(RotatedDC& dc) {
 	if (symbols.empty() && !value().filename.empty()) {
 		try {
 			// load symbol
-			SymbolP symbol = getLocalPackage().readFile<SymbolP>(value().filename);
+			SymbolP symbol = getLocalPackage().readFile<Symbol>(value().filename);
 			// aspect ratio
 			double ar = symbol->aspectRatio();
 			ar = min(style().max_aspect_ratio, max(style().min_aspect_ratio, ar));

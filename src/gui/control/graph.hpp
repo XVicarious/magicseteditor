@@ -138,14 +138,13 @@ enum DrawLayer
 /** It is rendered into a sub-rectangle of the screen */
 class Graph : public IntrusivePtrVirtualBase {
   public:
+	Graph(GraphDataP const& data) : data(data) {}
 	/// Determine the size of this graph viewer, return -1 if the viewer stretches
 	virtual RealSize determineSize(RotatedDC& dc) const { return RealSize(-1,-1); }
 	/// Draw this graph, filling the internalRect() of the dc.
 	virtual void draw(RotatedDC& dc, const vector<int>& current, DrawLayer layer) const = 0;
 	/// Find the item at the given position, the rectangle gives the screen size
 	virtual bool findItem(const RealPoint& pos, const RealRect& screen_rect, bool tight, vector<int>& out) const { return false; }
-	/// Change the data
-	virtual void setData(const GraphDataP& d) { data = d; }
 	/// Get the data
 	inline const GraphDataP& getData() const { return data; }
 	
@@ -157,10 +156,9 @@ class Graph : public IntrusivePtrVirtualBase {
 /// Base class for 1 dimensional graph components
 class Graph1D : public Graph {
   public:
-	inline Graph1D(size_t axis) : axis(axis) {}
+	Graph1D(GraphDataP const& data, size_t axis);
 	virtual void draw(RotatedDC& dc, const vector<int>& current, DrawLayer layer) const;
 	virtual bool findItem(const RealPoint& pos, const RealRect& screen_rect, bool tight, vector<int>& out) const;
-	virtual void setData(const GraphDataP& d);
   protected:
 	size_t axis;
 	/// Find an item, return the position along the axis, or -1 if not found
@@ -172,8 +170,7 @@ class Graph1D : public Graph {
 /// Base class for 2 dimensional graph components
 class Graph2D : public Graph {
   public:
-	inline Graph2D(size_t axis1, size_t axis2) : axis1(axis1), axis2(axis2) {}
-	virtual void setData(const GraphDataP& d);
+	Graph2D(GraphDataP const& data, size_t axis1, size_t axis2);
   protected:
 	size_t axis1, axis2;
 	vector<UInt> values; // axis1.size * axis2.size array
@@ -184,7 +181,7 @@ class Graph2D : public Graph {
 /// A bar graph
 class BarGraph : public Graph1D {
   public:
-	inline BarGraph(size_t axis) : Graph1D(axis) {}
+	inline BarGraph(GraphDataP const& data, size_t axis) : Graph1D(data,axis) {}
 	virtual void draw(RotatedDC& dc, int current, DrawLayer layer) const;
 	virtual int findItem(const RealPoint& pos, const RealRect& screen_rect, bool tight) const;
 };
@@ -192,7 +189,7 @@ class BarGraph : public Graph1D {
 // A bar graph with stacked bars
 class BarGraph2D : public Graph2D {
   public:
-	inline BarGraph2D(size_t axis_h, size_t axis_v) : Graph2D(axis_h, axis_v) {}
+	inline BarGraph2D(GraphDataP const& data, size_t axis_h, size_t axis_v) : Graph2D(data, axis_h, axis_v) {}
 	virtual void draw(RotatedDC& dc, const vector<int>& current, DrawLayer layer) const;
 	virtual bool findItem(const RealPoint& pos, const RealRect& screen_rect, bool tight, vector<int>& out) const;
 };
@@ -200,7 +197,7 @@ class BarGraph2D : public Graph2D {
 /// A pie graph
 class PieGraph : public Graph1D {
   public:
-	inline PieGraph(size_t axis) : Graph1D(axis) {}
+	inline PieGraph(GraphDataP const& data, size_t axis) : Graph1D(data, axis) {}
 	virtual void draw(RotatedDC& dc, int current, DrawLayer layer) const;
 	virtual int findItem(const RealPoint& pos, const RealRect& screen_rect, bool tight) const;
 };
@@ -208,21 +205,20 @@ class PieGraph : public Graph1D {
 /// A scatter plot
 class ScatterGraph : public Graph2D {
   public:
-	inline ScatterGraph(size_t axis1, size_t axis2) : Graph2D(axis1, axis2) {}
+	inline ScatterGraph(GraphDataP const& data, size_t axis1, size_t axis2) : Graph2D(data, axis1, axis2) { init_maxima(); }
 	virtual void draw(RotatedDC& dc, const vector<int>& current, DrawLayer layer) const;
 	virtual bool findItem(const RealPoint& pos, const RealRect& screen_rect, bool tight, vector<int>& out) const;
-	virtual void setData(const GraphDataP& d);
   protected:
 	UInt max_value;
 	double max_value_x, max_value_y; ///< highest sum of two adjacent scaled values (radii)
 	static double scale(double x); ///< nonlinear scaling
+	void init_maxima();
 };
 
 /// A scatter plot with an extra dimension
 class ScatterGraphPlus : public ScatterGraph {
   public:
-	inline ScatterGraphPlus(size_t axis1, size_t axis2, size_t axis3) : ScatterGraph(axis1, axis2), axis3(axis3) {}
-	virtual void setData(const GraphDataP& d);
+	ScatterGraphPlus(GraphDataP const& data, size_t axis1, size_t axis2, size_t axis3);
   protected:
 	size_t axis3;
 	vector<UInt> values3D; // axis1.size * axis2.size * axis3.size array
@@ -232,15 +228,15 @@ class ScatterGraphPlus : public ScatterGraph {
 /// A scatter plot with a pie graph for the third dimension
 class ScatterPieGraph : public ScatterGraphPlus {
   public:
-	inline ScatterPieGraph(size_t axis1, size_t axis2, size_t axis3) : ScatterGraphPlus(axis1, axis2, axis3) {}
+	inline ScatterPieGraph(GraphDataP const& data, size_t axis1, size_t axis2, size_t axis3) : ScatterGraphPlus(data, axis1, axis2, axis3) {}
 	virtual void draw(RotatedDC& dc, const vector<int>& current, DrawLayer layer) const;
 };
 
 /// The legend, used for pie graphs
 class GraphLegend : public Graph1D {
   public:
-	inline GraphLegend(size_t axis, Alignment alignment, bool reverse = false)
-		: Graph1D(axis), alignment(alignment), reverse(reverse)
+	inline GraphLegend(GraphDataP const& data, size_t axis, Alignment alignment, bool reverse = false)
+		: Graph1D(data, axis), alignment(alignment), reverse(reverse)
 	{}
 	virtual RealSize determineSize(RotatedDC& dc) const;
 	virtual void draw(RotatedDC& dc, int current, DrawLayer layer) const;
@@ -254,17 +250,19 @@ class GraphLegend : public Graph1D {
 /// Simple statistics like the mean
 class GraphStats : public Graph1D {
   public:
-	inline GraphStats(size_t axis, Alignment alignment)
-		: Graph1D(axis), alignment(alignment)
-	{}
+	inline GraphStats(GraphDataP const& data, size_t axis, Alignment alignment)
+		: Graph1D(data, axis), alignment(alignment)
+	{
+		calculateStats();
+	}
 	virtual RealSize determineSize(RotatedDC& dc) const;
 	virtual void draw(RotatedDC& dc, int current, DrawLayer layer) const;
-	virtual void setData(const GraphDataP& d);
   private:
 	mutable RealSize size, item_size;
 	mutable double label_width;
 	Alignment alignment;
 	vector<pair<String,String> > values;
+	void calculateStats();
 };
 
 //class GraphTable {
@@ -279,8 +277,8 @@ enum DrawLines
 /// Draws a horizontal/vertical axis for group labels
 class GraphLabelAxis : public Graph1D {
   public:
-	inline GraphLabelAxis(size_t axis, Direction direction, bool rotate = false, DrawLines draw_lines = DRAW_LINES_NO, bool label = false)
-		: Graph1D(axis), direction(direction), rotate(rotate), draw_lines(draw_lines), label(label)
+	inline GraphLabelAxis(GraphDataP const& data, size_t axis, Direction direction, bool rotate = false, DrawLines draw_lines = DRAW_LINES_NO, bool label = false)
+		: Graph1D(data,axis), direction(direction), rotate(rotate), draw_lines(draw_lines), label(label)
 	{}
 	virtual void draw(RotatedDC& dc, int current, DrawLayer layer) const;
 	virtual int findItem(const RealPoint& pos, const RealRect& screen_rect, bool tight) const;
@@ -295,7 +293,7 @@ class GraphLabelAxis : public Graph1D {
 /// Draws an a vertical axis for counts
 class GraphValueAxis : public Graph1D {
   public:
-	inline GraphValueAxis(size_t axis, bool highlight_value) : Graph1D(axis), highlight_value(highlight_value) {}
+	inline GraphValueAxis(GraphDataP const& data, size_t axis, bool highlight_value) : Graph1D(data,axis), highlight_value(highlight_value) {}
 	virtual void draw(RotatedDC& dc, int current, DrawLayer layer) const;
   private:
 	bool highlight_value;
@@ -307,13 +305,13 @@ class GraphWithMargins : public Graph {
 	inline GraphWithMargins(const GraphP& graph,
 	                        double margin_left, double margin_top, double margin_right, double margin_bottom,
 	                        bool upside_down = false)
-		: graph(graph)
+		: Graph(graph->getData())
+		, graph(graph)
 		, margin_left(margin_left), margin_top(margin_top), margin_right(margin_right), margin_bottom(margin_bottom)
 		, upside_down(upside_down)
 	{}
 	virtual void draw(RotatedDC& dc, const vector<int>& current, DrawLayer layer) const;
 	virtual bool findItem(const RealPoint& pos, const RealRect& screen_rect, bool tight, vector<int>& out) const;
-	virtual void setData(const GraphDataP& d);
   private:
 	const GraphP graph;
 	double margin_left, margin_top, margin_right, margin_bottom;
@@ -323,9 +321,9 @@ class GraphWithMargins : public Graph {
 /// A display containing multiple graphs
 class GraphContainer : public Graph {
   public:
+	GraphContainer (GraphDataP const& data) : Graph(data) {}
 	virtual void draw(RotatedDC& dc, const vector<int>& current, DrawLayer layer) const;
 	virtual bool findItem(const RealPoint& pos, const RealRect& screen_rect, bool tight, vector<int>& out) const;
-	virtual void setData(const GraphDataP& d);
 	
 	void add(const GraphP& graph);
   private:
@@ -340,14 +338,10 @@ class GraphControl : public wxControl {
 	/// Create a graph control
 	GraphControl(Window* parent, int id);
 	
-	/// Set the type of graph used, from a number of predefined choices
-	void setLayout(GraphType type, bool force_refresh = false);
-	/// Update the data in the graph
-	void setData(const GraphDataPre& data);
-	/// Update the data in the graph
-	void setData(const GraphDataP& data);
-	/// Retrieve the data in the graph
-	GraphDataP getData() const;
+	/// Set the type of graph used, from a number of predefined choices; and optionally set the data for the new graph
+	void setLayout(GraphType type, GraphDataP_nullable const& data = GraphDataP_nullable());
+	/// Retrieve the data in the graph (if any)
+	GraphDataP_nullable getData() const;
 	
 	/// Is there a selection on the given axis?
 	bool hasSelection(size_t axis) const;
@@ -363,7 +357,7 @@ class GraphControl : public wxControl {
 	
   private:
 	/// Graph object
-	GraphP graph;
+	GraphP_nullable graph;
 	GraphType layout; /// < The current layout
 	/// The selected item per axis, or an empty vector if there is no selection
 	/** If the value for an axis is -1, then all groups on that axis are selected */

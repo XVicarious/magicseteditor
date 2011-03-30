@@ -25,8 +25,8 @@ DECLARE_TYPEOF_COLLECTION(FieldP);
 
 // ----------------------------------------------------------------------------- : StylePanel : initialization
 
-StylePanel::StylePanel(Window* parent, int id)
-	: SetWindowPanel(parent, id)
+StylePanel::StylePanel(Window* parent, int id, SetP const& set)
+	: SetWindowPanel(parent, id, set)
 {
 	// delayed initialization by initControls()
 }
@@ -57,7 +57,7 @@ void StylePanel::initUI(wxToolBar* tb, wxMenuBar* mb) {
 	if (!isInitialized()) {
 		wxBusyCursor busy;
 		initControls();
-		CardP cur_card = card;
+		CardP_nullable cur_card = card;
 		onChangeSet();
 		selectCard(cur_card);
 	}
@@ -90,7 +90,7 @@ void StylePanel::onChangeSet() {
 	list->select(set->stylesheet->name(), false);
 	editor->setSet(set);
 	preview->setSet(set);
-	card = CardP();
+	card = CardP_nullable();
 	use_for_all->Enable(false);
 }
 
@@ -131,7 +131,7 @@ void StylePanel::onAction(const Action& action, bool undone) {
 
 // ----------------------------------------------------------------------------- : Selection
 
-void StylePanel::selectCard(const CardP& card) {
+void StylePanel::selectCard(const CardP_nullable& card) {
 	this->card = card;
 	if (!isInitialized()) return;
 	preview->setCard(card);
@@ -169,20 +169,22 @@ void StylePanel::onStyleSelect(wxCommandEvent&) {
 		}
 		if (stylesheet == set->stylesheet) {
 			// select no special style when selecting the same style as the set default
-			stylesheet = StyleSheetP();
+			stylesheet = StyleSheetP_nullable();
 		}
-		set->actions.addAction(new ChangeCardStyleAction(card, stylesheet));
+		set->actions.addAction(new ChangeCardStyleAction(from_non_null(card), stylesheet));
 		Layout();
 	}
 }
 
 void StylePanel::onUseForAll(wxCommandEvent&) {
-	set->actions.addAction(new ChangeSetStyleAction(*set, card));
+	if (!card) return;
+	set->actions.addAction(new ChangeSetStyleAction(*set, from_non_null(card)));
 	Layout();
 }
 
 void StylePanel::onUseCustom(wxCommandEvent&) {
-	set->actions.addAction(new ChangeCardHasStylingAction(*set, card));
+	if (!card) return;
+	set->actions.addAction(new ChangeCardHasStylingAction(*set, from_non_null(card)));
 }
 
 BEGIN_EVENT_TABLE(StylePanel, wxPanel)

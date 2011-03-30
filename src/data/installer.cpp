@@ -612,13 +612,13 @@ bool set_package_action(InstallablePackages& packages, const InstallablePackageP
 String mse_package = _("magicseteditor.exe");
 
 InstallablePackageP mse_installable_package() {
-	PackageVersionP mse_version(new PackageVersion(
+	PackageVersionP mse_version = intrusive(new PackageVersion(
 		PackageVersion::STATUS_GLOBAL |
 		PackageVersion::STATUS_BLESSED |
 		PackageVersion::STATUS_FIXED));
 	mse_version->name    = mse_package;
 	mse_version->version = app_version;
-	PackageDescriptionP mse_description(new PackageDescription);
+	PackageDescriptionP mse_description = intrusive(new PackageDescription);
 	mse_description->name          = mse_package;
 	mse_description->short_name    = mse_description->full_name = mse_description->installer_group
 	        = _TITLE_("magic set editor");

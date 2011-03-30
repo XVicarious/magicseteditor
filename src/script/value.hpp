@@ -14,6 +14,7 @@
 class Context;
 class Dependency;
 class ScriptClosure;
+DECLARE_POINTER_TYPE(ScriptClosure);
 DECLARE_POINTER_TYPE(GeneratedImage);
 
 // ----------------------------------------------------------------------------- : ScriptValue
@@ -73,7 +74,7 @@ class ScriptValue : public IntrusivePtrBaseWithDelete {
 	/// Convert this value to a wxDateTime
 	virtual wxDateTime toDateTime() const;
 	/// Convert this value to an image
-	virtual GeneratedImageP toImage(const ScriptValueP& thisP) const;
+	virtual GeneratedImageP toImage() const;
 
 	/// Get a member variable from this value
 	virtual ScriptValueP getMember(const String& name) const;
@@ -98,14 +99,13 @@ class ScriptValue : public IntrusivePtrBaseWithDelete {
 	/** Should return a simplification of the closure or null to keep the closure.
 	 *  Alternatively, the closure may be modified in place.
 	 */
-	virtual ScriptValueP simplifyClosure(ScriptClosure&) const;
+	virtual ScriptValueP_nullable simplifyClosure(ScriptClosure&) const;
 
 	/// Return an iterator for the current collection, an iterator is a value that has next()
-	/** thisP can be used to prevent destruction of the collection */
-	virtual ScriptValueP makeIterator(const ScriptValueP& thisP) const;
-	/// Return the next item for this iterator, or ScriptValueP() if there is no such item
+	virtual ScriptValueP makeIterator() const;
+	/// Return the next item for this iterator, or ScriptValueP_nullable() if there is no such item
 	/** If key_out != 0, then it will recieve the key of the item */
-	virtual ScriptValueP next(ScriptValueP* key_out = nullptr);
+	virtual ScriptValueP_nullable next(ScriptValueP* key_out = nullptr);
 	/// Return the number of items in this value (assuming it is a collection)
 	virtual int itemCount() const;
 	/// Get a member at the given index

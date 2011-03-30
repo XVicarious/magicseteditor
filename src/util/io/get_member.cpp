@@ -30,6 +30,9 @@ template <> void GetDefaultMember::handle(const AColor&       v) { value = to_sc
 template <> void GetDefaultMember::handle(const wxDateTime&   v) { value = to_script(v); }
             void GetDefaultMember::handle(const ScriptValueP& v) { value = v; }
             void GetDefaultMember::handle(const ScriptP&      v) { value = v; }
+#if USE_NON_NULL_TYPE
+            void GetDefaultMember::handle(const ScriptP_nullable& v) { value = v; }
+#endif
 
 // ----------------------------------------------------------------------------- : GetMember
 

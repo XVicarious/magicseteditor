@@ -30,8 +30,10 @@ DEFINE_EVENT_TYPE(EVENT_KEYWORD_SELECT);
 
 // ----------------------------------------------------------------------------- : KeywordList
 
-KeywordList::KeywordList(Window* parent, int id, long additional_style)
+KeywordList::KeywordList(Window* parent, int id, SetP const& set, long additional_style)
 	: ItemList(parent, id, additional_style)
+	, SetView(set)
+	, filter(no_filter<Keyword>())
 {
 	// Add columns
 	InsertColumn(0, _LABEL_("keyword"),  wxLIST_FORMAT_LEFT,    0);
@@ -108,9 +110,10 @@ bool KeywordList::canPaste()  const {
 }
 
 bool KeywordList::doCopy() {
-	if (!canCopy()) return false;
+	KeywordP_nullable keyword = getKeyword();
+	if (!keyword) return false;
 	if (!wxTheClipboard->Open()) return false;
-	bool ok = wxTheClipboard->SetData(new KeywordDataObject(set, getKeyword())); // ignore result
+	bool ok = wxTheClipboard->SetData(new KeywordDataObject(set, from_non_null(keyword))); // ignore result
 	wxTheClipboard->Close();
 	return ok;
 }
@@ -130,17 +133,22 @@ bool KeywordList::doPaste() {
 	wxTheClipboard->Close();
 	if (!ok) return false;
 	// add keyword to set
-	KeywordP keyword = data.getKeyword(set);
+	KeywordP_nullable keyword = data.getKeyword(set);
 	if (keyword) {
-		set->actions.addAction(new AddKeywordAction(ADD, *set, keyword));
+		set->actions.addAction(new AddKeywordAction(ADD, *set, from_non_null(keyword)));
 		return true;
 	} else {
 		return false;
 	}
 }
 bool KeywordList::doDelete() {
-	set->actions.addAction(new AddKeywordAction(REMOVE, *set, getKeyword()));
-	return true;
+	KeywordP_nullable keyword = getKeyword();
+	if (keyword) {
+		set->actions.addAction(new AddKeywordAction(REMOVE, *set, from_non_null(keyword)));
+		return true;
+	} else {
+		return false;
+	}
 }
 
 // ----------------------------------------------------------------------------- : KeywordListBase : for ItemList

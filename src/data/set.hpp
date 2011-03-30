@@ -42,7 +42,7 @@ class Set : public Packaged {
 	/// Create a set, the set should be open()ed later
 	Set();
 	/// Create a set using the given game
-	Set(const GameP& game);
+//%	Set(const GameP& game);
 	/// Create a set using the given stylesheet, and its game
 	Set(const StyleSheetP& stylesheet);
 	~Set();
@@ -68,7 +68,7 @@ class Set : public Packaged {
 	Context& getContext();
 	/// A context for performing scripts on a particular card
 	/** Should only be used from the main thread! */
-	Context& getContext(const CardP& card);
+	Context& getContext(const CardP_nullable& card);
 	/// Update styles and extra_card_fields for a card
 	void updateStyles(const CardP& card, bool only_content_dependent);
 	/// Update scripts that were delayed
@@ -85,13 +85,13 @@ class Set : public Packaged {
 	
 	/// Stylesheet to use for a particular card
 	/** card may be null */
-	const StyleSheet& stylesheetFor (const CardP& card);
-	StyleSheetP       stylesheetForP(const CardP& card);
+	const StyleSheet& stylesheetFor (const CardP_nullable& card);
+	StyleSheetP       stylesheetForP(const CardP_nullable& card);
 	
 	/// Styling information for a particular stylesheet
 	IndexMap<FieldP, ValueP>& stylingDataFor(const StyleSheet&);
 	/// Styling information for a particular card
-	IndexMap<FieldP, ValueP>& stylingDataFor(const CardP& card);
+	IndexMap<FieldP, ValueP>& stylingDataFor(const CardP_nullable& card);
 	
 	/// Get the identification of this set, an identification is something like a name, title, etc.
 	/** May return "" */
@@ -110,9 +110,9 @@ class Set : public Packaged {
 	}
 	
 	/// Find the position of a card in this set, when the card list is sorted using the given cirterium
-	int positionOfCard(const CardP& card, const ScriptValueP& order_by, const ScriptValueP& filter);
+	int positionOfCard(const CardP& card, const ScriptValueP_nullable& order_by, const ScriptValueP_nullable& filter);
 	/// Find the number of cards that match the given filter
-	int numberOfCards(const ScriptValueP& filter);
+	int numberOfCards(const ScriptValueP_nullable& filter);
 	/// Clear the order_cache used by positionOfCard
 	void clearOrderCache();
 	
@@ -136,8 +136,8 @@ class Set : public Packaged {
 	/// Object for executing scripts from the thumbnail thread
 	scoped_ptr<SetScriptContext> thumbnail_script_context;
 	/// Cache of cards ordered by some criterion
-	map<pair<ScriptValueP,ScriptValueP>,OrderCacheP> order_cache;
-	map<ScriptValueP,int>                            filter_cache;
+	map<pair<ScriptValueP_nullable,ScriptValueP_nullable>,OrderCacheP> order_cache;
+	map<ScriptValueP,int> filter_cache;
 };
 
 inline String type_name(const Set&) {
@@ -157,7 +157,7 @@ void mark_dependency_member(const Set& set, const String& name, const Dependency
  */
 class SetView : public ActionListener {
   public:
-	SetView();
+	SetView(const SetP& set);
 	~SetView();
 	
 	/// Get the set that is currently being viewed

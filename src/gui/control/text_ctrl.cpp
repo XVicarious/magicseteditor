@@ -78,9 +78,9 @@ void TextCtrl::onChangeSet() {
 	// initialize
 	if (viewers.empty()) {
 		// create a field, style and value
-		TextFieldP field(new TextField);
-		TextStyleP style(new TextStyle(field));
-		TextValueP value(new FakeTextValue(field, nullptr, false, false));
+		TextFieldP field = intrusive(new TextField);
+		TextStyleP style = intrusive(new TextStyle(field));
+		TextValueP value = intrusive(new FakeTextValue(field, nullptr, false, false));
 		// set stuff
 		field->index = 0;
 		field->multi_line = multi_line;

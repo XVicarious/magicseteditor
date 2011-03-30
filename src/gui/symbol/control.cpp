@@ -26,8 +26,10 @@ SymbolControl::SymbolControl(SymbolWindow* parent, int id, const SymbolP& symbol
 	: wxControl(parent, id, wxDefaultPosition, wxDefaultSize, wxBORDER_THEME)
 	, SymbolViewer(symbol, true)
 	, parent(parent)
+	, editor(intrusive(new SymbolSelectEditor(this, false)))
 {
-	onChangeSymbol();
+	selected_parts.setSymbol(symbol);
+	editor->initUI(parent->GetToolBar(), parent->GetMenuBar());
 }
 
 void SymbolControl::switchEditor(const SymbolEditorBaseP& e) {
@@ -55,7 +57,7 @@ void SymbolControl::onModeChange(wxCommandEvent& ev) {
 			if (selected_parts.size() == 1) {
 				selected_shape = selected_parts.getAShape();
 				if (selected_shape) {
-					switchEditor(intrusive(new SymbolPointEditor(this, selected_shape)));
+					switchEditor(intrusive(new SymbolPointEditor(this, from_non_null(selected_shape))));
 				}
 			}
 			break;
@@ -97,34 +99,30 @@ void SymbolControl::onUpdateSelection() {
 	switch(editor->modeToolId()) {
 		case ID_MODE_POINTS: {
 			// can only select a single part!
-			SymbolShapeP shape = selected_parts.getAShape();
+			SymbolShapeP_nullable shape = selected_parts.getAShape();
 			if (!shape) {
-				if (selected_parts.select(selected_shape)) {
+				if (selected_shape && selected_parts.select(from_non_null(selected_shape))) {
 					signalSelectionChange();
 				}
-				break;
-			}
-			if (shape != selected_shape) {
-				if (selected_parts.select(shape)) {
+			} else if (shape != selected_shape) {
+				if (selected_parts.select(from_non_null(shape))) {
 					signalSelectionChange();
 				}
 				// begin editing another part
 				selected_shape = shape;
-				editor = intrusive(new SymbolPointEditor(this, selected_shape));
+				editor = intrusive(new SymbolPointEditor(this, from_non_null(shape)));
 				Refresh(false);
 			}
 			break;
 		} case ID_MODE_SYMMETRY: {
 			// can only select a single part!
-			SymbolSymmetryP symmetry = selected_parts.getASymmetry();
+			SymbolSymmetryP_nullable symmetry = selected_parts.getASymmetry();
 			if (!symmetry) {
-				if (selected_symmetry && selected_parts.select(selected_symmetry)) {
+				if (selected_symmetry && selected_parts.select(from_non_null(selected_symmetry))) {
 					signalSelectionChange();
 				}
-				break;
-			}
-			if (symmetry != selected_symmetry) {
-				if (symmetry && selected_parts.select(symmetry)) {
+			} else if (symmetry != selected_symmetry) {
+				if (selected_parts.select(from_non_null(symmetry))) {
 					signalSelectionChange();
 				}
 				// begin editing another part

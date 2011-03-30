@@ -107,9 +107,10 @@ void ChangeSetStyleAction::perform(bool to_undo) {
 				card->has_styling = false; // this card has custom style options for the default stylesheet
 			}
 		}
+		if (!card->stylesheet) throw InternalError(_("ChangeSetStyleAction"));
 		stylesheet       = set.stylesheet;
-		set.stylesheet   = card->stylesheet;
-		card->stylesheet = StyleSheetP();
+		set.stylesheet   = from_non_null(card->stylesheet);
+		card->stylesheet = StyleSheetP_nullable();
 	} else {
 		card->stylesheet = set.stylesheet;
 		set.stylesheet   = stylesheet;
